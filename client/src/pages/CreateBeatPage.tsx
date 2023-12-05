@@ -10,11 +10,11 @@ import {
     TextInput,
     Stack,
     Select,
-    Textarea, NumberInput, CloseButton, Title, Checkbox, Flex, Loader
+    Textarea, NumberInput, CloseButton, Checkbox, Flex, Loader
 } from "@mantine/core";
 import {jwtDecode} from "jwt-decode";
 import {createBeat} from "../http/beatsAPI";
-import {IconCurrency, IconCurrencyDinar, IconCurrencyDollar, IconExclamationCircle} from "@tabler/icons-react";
+import {IconCurrencyDollar, IconExclamationCircle} from "@tabler/icons-react";
 import {getAllGenres} from "../http/genresAPI";
 
 import missingImage from '../images/missing.png'
@@ -25,7 +25,6 @@ import StepsBeatCreating from "../components/stepper/StepsBeatCreating";
 import {getAllKeys} from "../http/keysAPi";
 import {getAllLicensesTypes} from "../http/licensesAPI";
 import {MAIN_ROUTE} from "../routes/consts";
-import {check} from "../http/usersAPI";
 
 
 const CreateBeatPage = observer(() => {
@@ -204,9 +203,6 @@ const CreateBeatPage = observer(() => {
 
 
     if (loading) {
-        {
-            console.log(loading)
-        }
         return (
             <Flex
                 style={{
