@@ -1,4 +1,4 @@
-import {Injectable} from '@nestjs/common';
+import {Injectable, StreamableFile} from '@nestjs/common';
 import {
     DeleteObjectCommand,
     GetObjectCommand,
@@ -12,6 +12,8 @@ import {AvatarGeneratorService} from "../avatar_generator/avatar_generator.servi
 import {v4 as uuidv7} from 'uuid';
 import * as sharp from 'sharp';
 import * as mm from 'music-metadata'
+import { createReadStream } from 'fs';
+import { join } from 'path';
 
 const s3Client = new S3Client({
     region: "msk",
@@ -70,7 +72,6 @@ export class FileUploadService {
         console.log(uploadParams.Key)
         return uploadParams.Key
     }
-
 
     async deleteFile(key: string, bucket: string): Promise<void> {
         const deleteParams = {

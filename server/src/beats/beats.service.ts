@@ -84,6 +84,9 @@ export class BeatsService {
         console.log(page, pageSize)
         const skip: number = (page - 1) * pageSize;
         return this.prisma.beats.findMany({
+            where:{
+                is_available: true
+            },
             skip: skip,
             take: pageSize,
             select: {

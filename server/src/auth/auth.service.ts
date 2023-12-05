@@ -56,9 +56,9 @@ export class AuthService {
 
         try {
             const token = req.headers.authorization?.split(' ')[1];
-            if (token === 'null') {
-                throw new UnauthorizedException()
-            }
+            // if (token === 'null') {
+            //     throw new UnauthorizedException()
+            // }
 
             req.user = this.jwtService.verify(token)
             const payload = {email: req.user.email, id: req.user.id, role: req.user.role_id}

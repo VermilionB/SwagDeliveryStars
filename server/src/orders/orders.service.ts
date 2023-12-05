@@ -8,9 +8,22 @@ export class OrdersService {
     constructor(readonly prisma: PrismaService) {}
 
     async createOrder(dto: CreateOrderDto){
-        // const existingOrder = await this.prisma.order_history.findFirst({
-        //     where:
-        // })
+        const license = await this.prisma.licenses.findUnique({
+            where: {
+                id: dto.license
+            }
+        })
+
+        if(license.license_type === 5) {
+            await this.prisma.beats.update({
+                where: {
+                    id: dto.beat
+                },
+                data: {
+                    is_available: false
+                }
+            })
+        }
 
         return this.prisma.order_history.create({
             data: {
@@ -22,6 +35,8 @@ export class OrdersService {
                 beat_id: dto.beat
             }
         })
+
+
     }
 
     async getAllOrders() {
