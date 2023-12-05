@@ -1,0 +1,85 @@
+.header-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000; /* Вы можете установить любое подходящее значение z-index */
+    backdrop-filter: blur(20px); /* Регулируйте значение для достижения нужного эффекта блюра */
+}
+
+.footer-container {
+    position: fixed;
+    bottom: 95px;
+    left: 0;
+    right: 0;
+    z-index: 1000; /* Вы можете установить любое подходящее значение z-index */
+    backdrop-filter: blur(50px); /* Регулируйте значение для достижения нужного эффекта блюра */
+}
+
+
+.afterFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--mantine-spacing-xl);
+    padding-top: var(--mantine-spacing-xl);
+    padding-bottom: var(--mantine-spacing-xl);
+    border-top: 1px solid
+}
+
+.inner {
+    display: flex;
+    justify-content: space-between;
+}
+
+
+.footer-items {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.footer-link {
+    display: block;
+    color: #868E96FF;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+.footer-link:hover {
+    text-decoration: underline;
+}
+
+.footer-description {
+    margin-top: 5px;
+    margin-right: auto;
+}
+
+.wrapper {
+    min-width: 150px;
+}
+
+
+.footer-section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+#node {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main {
+    display: flex;
+    align-items: stretch;
+    flex: 1;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
