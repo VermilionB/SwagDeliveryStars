@@ -18,6 +18,7 @@ const BeatsList: React.FC<BeatsListProps> = observer(({searchValue}) => {
 
     useEffect(() => {
         const filtered = beats.beats.filter(b => b.name.toLowerCase().includes(searchValue.toLowerCase()));
+        console.log(filtered)
         setFilteredBeats(filtered);
     }, [searchValue, beats.beats])
 

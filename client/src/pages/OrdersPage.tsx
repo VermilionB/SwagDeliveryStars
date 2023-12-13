@@ -99,7 +99,7 @@ const SellsPage = () => {
         const fetchOrders = async () => {
 
             if (currentUser) {
-                const data = await getOrdersByUser(currentUser?.id)
+                const data = await getOrdersByUser(currentUser?.user.id)
                 console.log(data)
                 orders.setOrders(data)
                 setLoading(false)
@@ -176,7 +176,7 @@ const SellsPage = () => {
     };
 
 
-    if (loading || !orders.orders.length) {
+    if (loading) {
         return (
             <Flex
                 style={{
@@ -193,67 +193,82 @@ const SellsPage = () => {
 
     return (
         <Container size="xl" style={{paddingTop: '95px', display: 'flex', flexDirection: 'column', width: '100%'}}>
-            <Modal opened={opened} onClose={close} title="Order details" centered miw="400px">
-                <Card>
-                    <Group w="100%">
-                        <Avatar src={beatImage} size="xl" radius="lg" w="30%"/>
-                        <Group ml="10px">
-                            <Stack>
-                                <Text w="100%" fw={800}>{selectedBeat?.name}</Text>
-                                <Text c="dimmed">{seller}</Text>
-                            </Stack>
-                            <Stack>
-                                <Text>{selectedBeat?.genres.genre}</Text>
-                                <Text>{selectedBeat?.bpm} Bpm</Text>
-                            </Stack>
-                        </Group>
-                    </Group>
-                    <Group mt="20px">
-                        {selectedOrder?.licenses.license_types.includes_mp3 && selectedBeat && (
-                            <Button size="xs" onClick={() => downloadFile(selectedBeat?.beat_files.mp3_file, 'mp3')}>Download MP3</Button>
-                        )}
-                        {selectedOrder?.licenses.license_types.includes_wav && selectedBeat && (
-                            <Button size="xs" onClick={() => downloadFile(selectedBeat?.beat_files.wav_file, 'wav')}>Download WAV</Button>
-                        )}
-                        {selectedOrder?.licenses.license_types.includes_zip && selectedBeat && (
-                            <Button size="xs" onClick={() => downloadFile(selectedBeat?.beat_files.zip_file, 'zip')}>Download ZIP</Button>
-                        )}
-                    </Group>
-                </Card>
-            </Modal>
+            {orders.orders.length ? (
+                <>
+                    <Modal opened={opened} onClose={close} title="Order details" centered miw="400px">
+                        <Card>
+                            <Group w="100%">
+                                <Avatar src={beatImage} size="xl" radius="lg" w="30%"/>
+                                <Group ml="10px">
+                                    <Stack>
+                                        <Text w="100%" fw={800}>{selectedBeat?.name}</Text>
+                                        <Text c="dimmed">{seller}</Text>
+                                    </Stack>
+                                    <Stack>
+                                        <Text>{selectedBeat?.genres.genre}</Text>
+                                        <Text>{selectedBeat?.bpm} Bpm</Text>
+                                    </Stack>
+                                </Group>
+                            </Group>
+                            <Group mt="20px">
+                                {selectedOrder?.licenses.license_types.includes_mp3 && selectedBeat && (
+                                    <Button size="xs"
+                                            onClick={() => downloadFile(selectedBeat?.beat_files.mp3_file, 'mp3')}>Download
+                                        MP3</Button>
+                                )}
+                                {selectedOrder?.licenses.license_types.includes_wav && selectedBeat && (
+                                    <Button size="xs"
+                                            onClick={() => downloadFile(selectedBeat?.beat_files.wav_file, 'wav')}>Download
+                                        WAV</Button>
+                                )}
+                                {selectedOrder?.licenses.license_types.includes_zip && selectedBeat && (
+                                    <Button size="xs"
+                                            onClick={() => downloadFile(selectedBeat?.beat_files.zip_file, 'zip')}>Download
+                                        ZIP</Button>
+                                )}
+                            </Group>
+                        </Card>
+                    </Modal>
 
-            <Table stickyHeader stickyHeaderOffset={60} verticalSpacing="sm">
-                <Table.Thead>
-                    <Table.Tr>
-                        <Table.Th>ID</Table.Th>
-                        <Table.Th>Seller</Table.Th>
-                        <Table.Th>Consumer</Table.Th>
-                        <Table.Th>Product</Table.Th>
-                        <Table.Th>Purchase Date</Table.Th>
-                        <Table.Th>License Type</Table.Th>
-                        <Table.Th>Order Price</Table.Th>
-                    </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                    {orders.orders.map(order => (
-                        <Table.Tr key={order.id}>
-                            <Table.Td>{order.id}</Table.Td>
-                            <Table.Td>{order.users_order_history_seller_idTousers.username}</Table.Td>
-                            <Table.Td>{order.users_order_history_consumer_idTousers.username}</Table.Td>
-                            <Table.Td>{order.beats.name}</Table.Td>
-                            <Table.Td>{order.purchase_date}</Table.Td>
-                            <Table.Td>{order.licenses.license_types.license_type}</Table.Td>
-                            <Table.Td>${order.licenses.price}</Table.Td>
-                            <Table.Td>
-                                <Button m={0} variant="subtle" color="gray" size="xs" onClick={() => {
-                                    openDetailsModal(order)}}>
-                                    <IconDots/>
-                                </Button>
-                            </Table.Td>
-                        </Table.Tr>
-                    ))}
-                </Table.Tbody>
-            </Table>
+                    <Table stickyHeader stickyHeaderOffset={60} verticalSpacing="sm">
+                        <Table.Thead>
+                            <Table.Tr>
+                                <Table.Th>ID</Table.Th>
+                                <Table.Th>Seller</Table.Th>
+                                <Table.Th>Consumer</Table.Th>
+                                <Table.Th>Product</Table.Th>
+                                <Table.Th>Purchase Date</Table.Th>
+                                <Table.Th>License Type</Table.Th>
+                                <Table.Th>Order Price</Table.Th>
+                            </Table.Tr>
+                        </Table.Thead>
+                        <Table.Tbody>
+                            {orders.orders.map(order => (
+                                <Table.Tr key={order.id}>
+                                    <Table.Td>{order.id}</Table.Td>
+                                    <Table.Td>{order.users_order_history_seller_idTousers.username}</Table.Td>
+                                    <Table.Td>{order.users_order_history_consumer_idTousers.username}</Table.Td>
+                                    <Table.Td>{order.beats.name}</Table.Td>
+                                    <Table.Td>{order.purchase_date}</Table.Td>
+                                    <Table.Td>{order.licenses.license_types.license_type}</Table.Td>
+                                    <Table.Td>${order.licenses.price}</Table.Td>
+                                    <Table.Td>
+                                        <Button m={0} variant="subtle" color="gray" size="xs" onClick={() => {
+                                            openDetailsModal(order)
+                                        }}>
+                                            <IconDots/>
+                                        </Button>
+                                    </Table.Td>
+                                </Table.Tr>
+                            ))}
+                        </Table.Tbody>
+                    </Table>
+                </>
+            ) : (
+                <Text w="100%" fw={800} style={{display: 'flex', justifyContent: 'center'}}>No orders found</Text>
+
+            )}
+
         </Container>
     );
 };

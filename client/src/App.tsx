@@ -3,7 +3,7 @@ import './App.css';
 import {BrowserRouter} from "react-router-dom";
 import AppRouter from "./components/router/AppRouter";
 import Header from './components/Header';
-import {Container, Flex, Loader} from '@mantine/core';
+import {Container, Flex, Loader, Portal} from '@mantine/core';
 import {observer} from "mobx-react-lite";
 import {Context} from "./index";
 import {check} from "./http/usersAPI";

@@ -48,22 +48,22 @@ export class UsersController {
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.Admin, Role.Producer)
     @Post('/follow/:id')
-    async followUser(@Param() id, @CurrentUser('id') currentUserId: string) {
-        console.log(`id --------- ${id.id}`)
+    async followUser(@Param('id') id: string, @CurrentUser('id') currentUserId: string) {
+        console.log(`id --------- ${id}`)
         return await this.usersService.followUser(id, currentUserId)
     }
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.Admin, Role.Producer)
     @Post('/unfollow/:id')
-    async unfollowUser(@Param() id, @CurrentUser('id') currentUserId: string){
+    async unfollowUser(@Param('id') id: string, @CurrentUser('id') currentUserId: string){
             return await this.usersService.unfollowUser(id, currentUserId)
     }
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.Admin, Role.Producer)
     @Get('/findFollowed/:id')
-    async findFollowed(@Param() id, @CurrentUser('id') currentUserId: string){
+    async findFollowed(@Param('id') id: string, @CurrentUser('id') currentUserId: string){
         // console.log(id)
         return await this.usersService.findFollowed(id, currentUserId)
     }

@@ -10,7 +10,7 @@ interface BeatCardComponentProps {
 }
 const BeatCardComponent: FC<BeatCardComponentProps> = ({beat}) => {
     const navigate = useNavigate()
-
+    // console.log(beat)
     return (
         <Card shadow="sm" padding="lg" radius="md" withBorder style={{flexGrow: 1, cursor: 'pointer'}}
               miw="200px" onClick={() => navigate(ALL_BEATS_ROUTE + '/' + beat.id)}>

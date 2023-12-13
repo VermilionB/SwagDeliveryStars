@@ -34,7 +34,6 @@ export class FileUploadService {
                 .resize(400, 400)
                 .toFormat('webp')
                 .toBuffer();
-
         }
         if (email) {
             const url = this.avatarGenerator.generateGravatarUrl(email);
@@ -73,9 +72,9 @@ export class FileUploadService {
         return uploadParams.Key
     }
 
-    async deleteFile(key: string, bucket: string): Promise<void> {
+    async deleteFile(key: string): Promise<void> {
         const deleteParams = {
-            Bucket: bucket,
+            Bucket: this.bucketName,
             Key: key,
         };
 

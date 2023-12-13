@@ -1,9 +1,10 @@
-import {Injectable} from '@nestjs/common';
+import {Injectable, NotFoundException} from '@nestjs/common';
 import {PrismaService} from "../prisma.service";
 import {CreateBeatDto} from "./dto/create-beat.dto";
 import {FileUploadService} from "../file-upload/file-upload.service";
 import {v4 as uuidv7} from 'uuid';
 import {Decimal} from '@prisma/client/runtime/library';
+import {UpdateBeatDto} from "./dto/update-beat.dto";
 
 @Injectable()
 export class BeatsService {
@@ -84,7 +85,7 @@ export class BeatsService {
         console.log(page, pageSize)
         const skip: number = (page - 1) * pageSize;
         return this.prisma.beats.findMany({
-            where:{
+            where: {
                 is_available: true
             },
             skip: skip,
@@ -148,14 +149,20 @@ export class BeatsService {
                         genre: true
                     }
                 },
-                likes: true,
+                _count: {
+                    select: {
+                        likes: true,
+                        plays: true,
+                        reposts: true
+                    }
+                },
                 description: true,
                 is_free: true,
                 is_available: true,
                 tags: true,
                 licenses: {
                     select: {
-                        id:true,
+                        id: true,
                         license_types: {
                             select: {
                                 id: true,
@@ -166,30 +173,41 @@ export class BeatsService {
                         price: true
                     }
                 },
-                ratings_reviews: {
+                comments: {
                     select: {
-                        rating: true,
-                        comment: true,
                         users: {
                             select: {
                                 username: true,
-                                avatar_url: true,
-                                is_banned: true
+                                avatar_url: true
                             }
-                        }
+                        },
+                        comment: true
                     }
                 },
+                // ratings_reviews: {
+                //     select: {
+                //         rating: true,
+                //         comment: true,
+                //         users: {
+                //             select: {
+                //                 username: true,
+                //                 avatar_url: true,
+                //                 is_banned: true
+                //             }
+                //         }
+                //     }
+                // },
                 beat_files: {
                     select: {
                         mp3_file: true
                     }
                 },
-                plays: true
+
             }
-        })
+        });
     }
 
-    async playBeat (listenerId: string, beatId: string) {
+    async playBeat(listenerId: string, beatId: string) {
         const existingPlay = await this.prisma.plays.findFirst({
             where: {
                 beat_id: beatId,
@@ -209,7 +227,243 @@ export class BeatsService {
         });
     }
 
-    async getAllBeatsCount () {
-        return this.prisma.beats.count()
+    async getAllBeatsCount() {
+        return this.prisma.beats.count({
+            where: {
+                is_available: true
+            }
+        })
     }
+
+    async likeBeat(userId: string, beatId: string) {
+        const alreadyLiked = await this.prisma.likes.findUnique({
+            where: {
+                user_id_beat_id: {
+                    user_id: userId,
+                    beat_id: beatId
+                }
+            },
+        });
+
+        if (!alreadyLiked) {
+            return this.prisma.likes.create({
+                data: {
+                    user_id: userId,
+                    beat_id: beatId,
+                },
+            });
+        }
+    }
+
+    async unlikeBeat(userId: string, beatId: string) {
+        const alreadyLiked = await this.prisma.likes.findUnique({
+            where: {
+                user_id_beat_id: {
+                    user_id: userId,
+                    beat_id: beatId,
+                },
+            },
+        });
+
+        if (alreadyLiked) {
+            return this.prisma.likes.delete({
+                where: {
+                    user_id_beat_id: {
+                        user_id: userId,
+                        beat_id: beatId,
+                    },
+                },
+            });
+        }
+    }
+
+    async findLiked(userId: string, beatId: string) {
+        return this.prisma.likes.findUnique({
+            where: {
+                user_id_beat_id: {
+                    user_id: userId,
+                    beat_id: beatId,
+                },
+            },
+        });
+    }
+
+
+    async repostBeat(userId: string, beatId: string) {
+        const alreadyLiked = await this.prisma.reposts.findUnique({
+            where: {
+                user_id_beat_id: {
+                    user_id: userId,
+                    beat_id: beatId
+                }
+            },
+        });
+
+        if (!alreadyLiked) {
+            return this.prisma.reposts.create({
+                data: {
+                    user_id: userId,
+                    beat_id: beatId,
+                },
+            });
+        }
+    }
+
+    async unrepostBeat(userId: string, beatId: string) {
+        const alreadyLiked = await this.prisma.reposts.findUnique({
+            where: {
+                user_id_beat_id: {
+                    user_id: userId,
+                    beat_id: beatId,
+                },
+            },
+        });
+
+        if (alreadyLiked) {
+            return this.prisma.reposts.delete({
+                where: {
+                    user_id_beat_id: {
+                        user_id: userId,
+                        beat_id: beatId,
+                    },
+                },
+            });
+        }
+    }
+
+    async findReposted(userId: string, beatId: string) {
+        return this.prisma.reposts.findUnique({
+            where: {
+                user_id_beat_id: {
+                    user_id: userId,
+                    beat_id: beatId,
+                },
+            },
+        });
+    }
+
+
+    async updateBeat(dto: UpdateBeatDto, file: Express.Multer.File, userId: string) {
+        try {
+            const foundProducer = await this.prisma.beats.findFirst({
+                where: {
+                    producer_id: userId,
+                },
+                select: {
+                    producer_id: true,
+                },
+            });
+
+            if (userId === foundProducer.producer_id) {
+                let imageUrl: string | undefined;
+
+                if (file) {
+                    imageUrl = await this.uploadFiles.uploadFile(file);
+                }
+
+                const updatedBeat = await this.prisma.beats.update({
+                    where: {
+                        id: dto.beatId,
+                    },
+                    data: {
+                        name: dto.name,
+                        image_url: imageUrl !== undefined ? imageUrl : undefined, // Установите новое значение, только если файл существует
+                        description: dto.description,
+                        is_free: Boolean(dto.isFree),
+                    },
+                });
+
+                const licenses = JSON.parse(dto.licenses);
+                const licenseTypes = Object.keys(licenses);
+                const licensePrices = Object.values(licenses);
+
+                await Promise.all(
+                    licenseTypes.map(async (licenseType, i) => {
+                        console.log(licenseType)
+                        const licensePrice: number = parseFloat(licensePrices[i] as string);
+                        console.log(licensePrice)
+                        await this.prisma.licenses.updateMany({
+                            where: {
+                                AND: [
+                                    {license_type: parseInt(licenseType, 10)},
+                                    {beat_id: updatedBeat.id}
+                                ]
+                            },
+                            data: {
+                                price: new Decimal(licensePrice),
+                            },
+                        });
+                    })
+                );
+
+                return updatedBeat
+            } else {
+                throw new NotFoundException(`You can't update not your own beat`);
+            }
+        } catch (err) {
+            throw new NotFoundException(`[SERVER] Error while updating beat: ${err}`);
+        }
+    }
+
+    async deleteBeat(beatId: string, userId: string) {
+        try {
+            const foundProducer = await this.prisma.beats.findFirst({
+                where: {
+                    producer_id: userId,
+                },
+                select: {
+                    producer_id: true,
+                },
+            });
+
+            const isAdmin = await this.prisma.users.findUnique({
+                where: {
+                    id: userId
+                },
+                select: {
+                    roles: {
+                        select: {
+                            role_name: true
+                        }
+                    }
+                }
+            })
+
+            if (userId === foundProducer.producer_id || isAdmin.roles.role_name === 'admin') {
+                const foundBeat = await this.prisma.beats.findFirst({
+                    where: {
+                        id: beatId
+                    }
+                })
+
+                const foundBeatFiles = await this.prisma.beat_files.findFirst({
+                    where: {
+                        id: foundBeat.beat_files_id
+                    }
+                })
+                const filesToDelete = [foundBeatFiles.mp3_file, foundBeatFiles.wav_file, foundBeatFiles.zip_file]
+
+                filesToDelete.map(async(file) => {
+                    await this.uploadFiles.deleteFile(file)
+                })
+
+                // const deleteFiles = this.prisma.beat_files.delete({
+                //     where: {
+                //         id: foundBeatFiles.id
+                //     }
+                // })
+
+                return this.prisma.beats.delete({
+                    where: {
+                        id: beatId
+                    }
+                })
+            } else {
+                throw new NotFoundException(`You can't delete not your own beat`);
+            }
+        } catch (err) {
+            throw new NotFoundException(`[SERVER] Error while deleting beat: ${err}`);
+        }
+    }
+
 }

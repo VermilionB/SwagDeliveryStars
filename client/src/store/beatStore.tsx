@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx';
+import {makeAutoObservable} from 'mobx';
 import {fetchAvatarFile} from "../http/usersAPI";
 
 export interface GenreInterface {
@@ -40,7 +40,12 @@ export interface BeatsInterface {
             license_type: number;
             price: string;
         }
-    ]
+    ],
+    description: string
+}
+
+interface RepostsInterface {
+    beats: BeatsInterface,
 }
 
 export default class BeatStore {
@@ -48,6 +53,7 @@ export default class BeatStore {
     private _keys: KeysInterface[] = [];
     private _licensesTypes: LicensesTypesInterface[] = [];
     private _beats: BeatsInterface[] = [];
+    private _reposts: RepostsInterface[] = []
 
     constructor() {
         makeAutoObservable(this);
@@ -76,6 +82,7 @@ export default class BeatStore {
     get licensesTypes(): LicensesTypesInterface[] {
         return this._licensesTypes;
     }
+
     setBeats = async (beats: BeatsInterface[]) => {
         this._beats = await Promise.all(beats.map(async (beat) => {
             return {
@@ -83,6 +90,22 @@ export default class BeatStore {
                 image_url: await fetchAvatarFile(beat.image_url),
             };
         }));
+    }
+
+    setReposts = async (reposts: RepostsInterface[]) => {
+        this._reposts = await Promise.all(reposts.map(async (repost) => {
+            return {
+                ...repost,
+                beats: {
+                    ...repost.beats,
+                    image_url: await fetchAvatarFile(repost.beats.image_url),
+                },
+            };
+        }));
+    }
+
+    get reposts(): RepostsInterface[] {
+        return this._reposts;
     }
 
 

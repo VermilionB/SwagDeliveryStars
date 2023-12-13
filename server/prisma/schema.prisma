@@ -8,30 +8,30 @@ datasource db {
 }
 
 model beats {
-  id              String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  name            String?           @db.VarChar(255)
-  producer_id     String?           @db.Uuid
-  genre_id        String?           @db.Uuid
-  beat_files_id   String?           @db.Uuid
-  image_url       String?           @db.VarChar(1024)
-  duration        Int?
-  description     String?
-  bpm             Int?
-  key             Int?              @db.SmallInt
-  tags            String[]          @db.VarChar(255)
-  is_free         Boolean?          @default(false)
-  is_available    Boolean?          @default(true)
-  beat_files      beat_files?       @relation(fields: [beat_files_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  genres          genres?           @relation(fields: [genre_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  keys            keys?             @relation(fields: [key], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  users           users?            @relation(fields: [producer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  comments        comments[]
-  licenses        licenses[]
-  likes           likes[]
-  order_history   order_history[]
-  plays           plays[]
-  ratings_reviews ratings_reviews[]
-  reposts         reposts[]
+  id            String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name          String?         @db.VarChar(255)
+  producer_id   String?         @db.Uuid
+  genre_id      String?         @db.Uuid
+  beat_files_id String?         @db.Uuid
+  image_url     String?         @db.VarChar(1024)
+  duration      Int?
+  description   String?
+  bpm           Int?
+  key           Int?            @db.SmallInt
+  tags          String[]        @db.VarChar(255)
+  is_free       Boolean?        @default(false)
+  is_available  Boolean?        @default(true)
+  beat_files    beat_files?     @relation(fields: [beat_files_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  genres        genres?         @relation(fields: [genre_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  keys          keys?           @relation(fields: [key], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users         users?          @relation(fields: [producer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  comments      comments[]
+  licenses      licenses[]
+  likes         likes[]
+  order_history order_history[]
+  plays         plays[]
+  ratings       ratings[]
+  reposts       reposts[]
 }
 
 model genres {
@@ -45,7 +45,7 @@ model licenses {
   beat_id       String?         @db.Uuid
   license_type  Int?            @db.SmallInt
   price         Decimal?        @db.Decimal(10, 2)
-  beats         beats?          @relation(fields: [beat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  beats         beats?          @relation(fields: [beat_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   license_types license_types?  @relation(fields: [license_type], references: [id], onDelete: NoAction, onUpdate: NoAction)
   order_history order_history[]
 }
@@ -57,28 +57,19 @@ model order_history {
   purchase_date                          DateTime? @db.Timestamp(6)
   license_id                             String?   @db.Uuid
   beat_id                                String?   @db.Uuid
-  beats                                  beats?    @relation(fields: [beat_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "order_history_beats_id_fk")
+  beats                                  beats?    @relation(fields: [beat_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "order_history_beats_id_fk")
   users_order_history_consumer_idTousers users?    @relation("order_history_consumer_idTousers", fields: [consumer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   licenses                               licenses? @relation(fields: [license_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   users_order_history_seller_idTousers   users?    @relation("order_history_seller_idTousers", fields: [seller_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
-model ratings_reviews {
-  id      String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  beat_id String? @db.Uuid
-  user_id String? @db.Uuid
-  rating  Int?
-  comment String?
-  beats   beats?  @relation(fields: [beat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  users   users?  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
 model reposts {
-  id      String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  user_id String? @db.Uuid
-  beat_id String? @db.Uuid
-  beats   beats?  @relation(fields: [beat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  users   users?  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user_id String @db.Uuid
+  beat_id String @db.Uuid
+  beats   beats  @relation(fields: [beat_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users   users  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([user_id, beat_id])
 }
 
 model roles {
@@ -88,27 +79,28 @@ model roles {
 }
 
 model users {
-  id                                             String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  email                                          String            @unique @db.VarChar(255)
-  password                                       String            @db.VarChar(255)
-  username                                       String?           @db.VarChar(255)
-  avatar_url                                     String?           @db.VarChar(1024)
+  id                                             String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email                                          String          @unique @db.VarChar(255)
+  password                                       String          @db.VarChar(255)
+  username                                       String?         @db.VarChar(255)
+  avatar_url                                     String?         @db.VarChar(1024)
   bio                                            String?
-  contact_info                                   String?           @db.VarChar(255)
-  social_links_id                                String?           @db.Uuid
-  is_banned                                      Boolean?          @default(false)
-  role_id                                        Int?              @default(1) @db.SmallInt
+  contact_info                                   String?         @db.VarChar(255)
+  social_links_id                                String?         @db.Uuid
+  is_banned                                      Boolean?        @default(false)
+  role_id                                        Int?            @default(1) @db.SmallInt
   beats                                          beats[]
-  followers_followers_who_followedTousers        followers[]       @relation("followers_who_followedTousers")
-  followers_followers_who_followsTousers         followers[]       @relation("followers_who_followsTousers")
+  comments                                       comments[]
+  followers_followers_who_followedTousers        followers[]     @relation("followers_who_followedTousers")
+  followers_followers_who_followsTousers         followers[]     @relation("followers_who_followsTousers")
   likes                                          likes[]
-  order_history_order_history_consumer_idTousers order_history[]   @relation("order_history_consumer_idTousers")
-  order_history_order_history_seller_idTousers   order_history[]   @relation("order_history_seller_idTousers")
+  order_history_order_history_consumer_idTousers order_history[] @relation("order_history_consumer_idTousers")
+  order_history_order_history_seller_idTousers   order_history[] @relation("order_history_seller_idTousers")
   plays                                          plays[]
-  ratings_reviews                                ratings_reviews[]
+  ratings                                        ratings[]
   reposts                                        reposts[]
-  roles                                          roles?            @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  social_links                                   social_links?     @relation(fields: [social_links_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  roles                                          roles?          @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  social_links                                   social_links?   @relation(fields: [social_links_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model beat_files {
@@ -150,8 +142,10 @@ model keys {
 model comments {
   id      String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   beat_id String? @db.Uuid
+  user_id String? @db.Uuid
   comment String?
   beats   beats?  @relation(fields: [beat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users   users?  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model likes {
@@ -175,8 +169,18 @@ model followers {
 model plays {
   beat_id     String @db.Uuid
   listener_id String @db.Uuid
-  beats       beats  @relation(fields: [beat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  beats       beats  @relation(fields: [beat_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users       users  @relation(fields: [listener_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([beat_id, listener_id])
+}
+
+model ratings {
+  beat_id String @db.Uuid
+  user_id String @db.Uuid
+  rating  Int?
+  beats   beats  @relation(fields: [beat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users   users  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([user_id, beat_id])
 }

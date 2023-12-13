@@ -9,7 +9,9 @@ import {ComponentPreviews, useInitial} from "./dev";
 import '@mantine/carousel/styles.css';
 import BeatStore from "./store/beatStore";
 import OrdersStore from "./store/orderStore";
+import {Notifications} from "@mantine/notifications";
 
+import '@mantine/notifications/styles.css';
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
@@ -35,6 +37,8 @@ root.render(
             orders: new OrdersStore()
         }}>
             <MantineProvider defaultColorScheme="dark">
+                <Notifications/>
+
                 <DevSupport ComponentPreviews={ComponentPreviews}
                             useInitialHook={useInitial}
                 >

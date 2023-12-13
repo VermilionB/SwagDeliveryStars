@@ -18,6 +18,7 @@ import {FileFieldsInterceptor, FileInterceptor} from "@nestjs/platform-express";
 import {CurrentUser} from "../auth/decorators/user.decorator";
 import {CreateBeatDto} from "./dto/create-beat.dto";
 import {FileSizeInterceptor} from "../file-upload/interceptors/file-size.interceptor";
+import {UpdateBeatDto} from "./dto/update-beat.dto";
 
 @Controller('beats')
 export class BeatsController {
@@ -49,10 +50,7 @@ export class BeatsController {
     async getAllBeatsCount() {
         return this.beatsService.getAllBeatsCount();
     }
-    @Get(':id')
-    async getBeatById(@Param('id') id: string) {
-        return this.beatsService.getBeatById(id);
-    }
+
 
     @Get()
     async getAllBeats(@Query('page') page: number, @Query('pageSize') pageSize: number) {
@@ -66,25 +64,65 @@ export class BeatsController {
         return this.beatsService.playBeat(listenerId, beatId)
     }
 
-    // @Get('plays/:listenerId')
-    // async getPlaysByUser(@Param('listenerId') listenerId: string) {
-    //     return this.beatsService.getPlaysByBeat(listenerId)
-    // }
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.Admin, Role.Producer)
+    @Post('like/:beatId')
+    async likeBeat(@CurrentUser('id') userId: string, @Param('beatId') beatId: string) {
+        return await this.beatsService.likeBeat(userId, beatId);
+    }
 
-    // @Get('plays')
-    // async getPlaysByBeat(@Query('beatId') beatId: string) {
-    //     return this.beatsService.getPlaysByBeat(beatId)
-    // }
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.Admin, Role.Producer)
+    @Post('dislike/:beatId')
+    async dislikeBeat(@CurrentUser('id') userId: string, @Param('beatId') beatId: string) {
+        return await this.beatsService.unlikeBeat(userId, beatId);
+    }
 
-    //
-    // @Put(':id')
-    // async updateBeat(@Param('id') id: string, @Body() dto: BeatsDto) {
-    //     return this.beatsService.updateBeat(id, dto);
-    // }
-    //
-    // @Delete(':id')
-    // async deleteBeat(@Param('id') id: string) {
-    //     return this.beatsService.deleteBeat(id);
-    // }
-    //
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.Admin, Role.Producer)
+    @Get('findLiked/:beatId')
+    async findLiked(@CurrentUser('id') userId: string, @Param('beatId') beatId: string) {
+        return await this.beatsService.findLiked(userId, beatId);
+    }
+
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.Admin, Role.Producer)
+    @Post('repost/:beatId')
+    async repostBeat(@CurrentUser('id') userId: string, @Param('beatId') beatId: string) {
+        return await this.beatsService.repostBeat(userId, beatId);
+    }
+
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.Admin, Role.Producer)
+    @Post('unrepost/:beatId')
+    async unrepostBeat(@CurrentUser('id') userId: string, @Param('beatId') beatId: string) {
+        return await this.beatsService.unrepostBeat(userId, beatId);
+    }
+
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.Admin, Role.Producer)
+    @Get('findReposted/:beatId')
+    async findReposted(@CurrentUser('id') userId: string, @Param('beatId') beatId: string) {
+        return await this.beatsService.findReposted(userId, beatId);
+    }
+
+    @Get(':id')
+    async getBeatById(@Param('id') id: string) {
+        return this.beatsService.getBeatById(id);
+    }
+    
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.Admin, Role.Producer)
+    @UseInterceptors(FileInterceptor('image_file'))
+    @Put()
+    async updateBeat(@Body() dto: UpdateBeatDto, @UploadedFile() file: Express.Multer.File, @CurrentUser('id') userId: string) {
+        return this.beatsService.updateBeat(dto, file, userId);
+    }
+
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.Admin, Role.Producer)
+    @Delete(':beatId')
+    async deleteBeat(@Param('beatId') beatId: string, @CurrentUser('id') userId: string) {
+        return this.beatsService.deleteBeat(beatId, userId);
+    }
 }

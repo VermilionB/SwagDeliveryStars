@@ -1,6 +1,6 @@
 import {
     ADMIN_ROUTE, ALL_BEATS_ROUTE, CREATE_MEDIA_ROUTE,
-    LOGIN_ROUTE, MAIN_ROUTE,
+    LOGIN_ROUTE, MAIN_ROUTE, MY_MEDIA_ROUTE,
     ORDERS_ROUTE,
     REGISTRATION_ROUTE, SALES_ROUTE,
     USER_ROUTE
@@ -14,6 +14,7 @@ import AllBeatsPage from "../pages/beatsPages/AllBeatsPage";
 import SelectedBeatPage from "../pages/beatsPages/SelectedBeatPage";
 import SalesPage from "../pages/SalesPage";
 import OrdersPage from "../pages/OrdersPage";
+import MyMediaPage from "../pages/beatsPages/MyMediaPage";
 
 
 export const publicRoutes = [
@@ -56,11 +57,11 @@ export const authRoutes = [
     {
         path: CREATE_MEDIA_ROUTE,
         Component: CreateBeatPage
-    }
-    // {
-    //     path: ADMIN_ROUTE,
-    //     Component: AdminPage
-    // },
+    },
+    {
+        path: MY_MEDIA_ROUTE,
+        Component: MyMediaPage
+    },
     // {
     //     path: USER_ROUTE,
     //     Component: UserPage

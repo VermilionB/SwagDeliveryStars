@@ -19,6 +19,7 @@ import {registration} from "../http/usersAPI";
 import {observer} from "mobx-react-lite";
 import {useNavigate} from "react-router-dom";
 import {Context} from "../index";
+import {notifications} from "@mantine/notifications";
 
 const RegistrationPage = observer(() => {
     const { user } = useContext(Context);
@@ -84,20 +85,21 @@ const RegistrationPage = observer(() => {
             formData.append('password', password);
             formData.append('username', username);
 
-            setLoading(true)
 
             const data = await registration(formData, config);
 
             if(data){
-                setLoading(false)
                 user.setUser(data);
                 user.setIsAuth(true);
                 navigate(MAIN_ROUTE);
             }
 
         }catch (err: any) {
-            setAlertMessage(err.message);
-            setShowAlert(true);
+            notifications.show({
+                title: 'Error',
+                message: `Failed to register: ${err.response.data.message}`,
+                color: 'red',
+            });
         }
         setAlertMessage('')
         setShowAlert(false)

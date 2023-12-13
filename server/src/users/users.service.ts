@@ -1,4 +1,4 @@
-import {HttpException, Injectable, NotFoundException} from '@nestjs/common';
+import {Injectable, NotFoundException} from '@nestjs/common';
 import {PrismaService} from "../prisma.service";
 import {UpdateUserDto} from "./dto/update-user.dto";
 import * as argon2 from 'argon2';
@@ -61,7 +61,7 @@ export class UsersService {
         const existingUser = await this.prisma.users.findUnique({
             where: {id}
         })
-        if(existingUser){
+        if (existingUser) {
             console.log(existingUser)
             await this.prisma.social_links.update({
                 where: {
@@ -77,7 +77,7 @@ export class UsersService {
                     twitch: updatedData.twitch
                 }
             })
-            if(updatedData.password) {
+            if (updatedData.password) {
                 hashedPassword = await argon2.hash(updatedData.password);
             }
             if (file) {
@@ -95,8 +95,7 @@ export class UsersService {
                     contact_info: updatedData.contact_info
                 },
             });
-        }
-        else throw new NotFoundException(`Пользователя с таким идентификатором ${id} не существует`);
+        } else throw new NotFoundException(`User with such id ${id} not exists`);
     }
 
     async deleteUser(id: string) {
@@ -116,41 +115,68 @@ export class UsersService {
     }
 
     async getUserById(id: string) {
-        return this.prisma.users.findUnique({
+        const user = await this.prisma.users.findUnique({
             where: { id },
             include: {
                 followers_followers_who_followsTousers: true,
                 followers_followers_who_followedTousers: true,
-                plays: true,
                 beats: {
                     include: {
                         users: true,
                         licenses: true,
                         genres: true,
-                        beat_files: true
-                    }
+                        beat_files: true,
+                    },
                 },
-            } as any,
+                reposts: {
+                    select: {
+                        beats: {
+                            include: {
+                                users: true,
+                                licenses: true,
+                                genres: true,
+                                beat_files: true,
+                            },
+                        },
+                    },
+                },
+            },
         });
+
+        if (!user) {
+            // Handle case where user is not found
+            return null;
+        }
+
+        let totalPlays = 0;
+
+        for (const beat of user.beats) {
+            const playsCount = await this.prisma.plays.count({
+                where: { beat_id: beat.id },
+            });
+            totalPlays += playsCount;
+        }
+
+        return { user, totalPlays };
     }
 
-    async followUser(id, currentUserId: string) {
+    async followUser(id: string, currentUserId: string) {
         const existingUser = await this.prisma.users.findUnique({
-            where: {id: id.id}
+            where: {id: id}
         })
         const alreadyFollowed = await this.prisma.followers.findUnique({
             where: {
                 who_follows_who_followed: {
                     who_follows: currentUserId,
-                    who_followed: id.id,
+                    who_followed: id,
                 },
             },
         });
-        if(existingUser && !alreadyFollowed) {
-            if(id !== currentUserId){
+        if (existingUser && !alreadyFollowed) {
+            if (id !== currentUserId) {
                 return this.prisma.followers.create({
                     data: {
-                        who_followed: id.id,
+                        who_followed: id,
                         who_follows: currentUserId
                     }
                 })
@@ -158,35 +184,35 @@ export class UsersService {
         } else throw new NotFoundException(`Пользователя с таким идентификатором ${id} не существует`);
     }
 
-    async unfollowUser(id, currentUserId: string) {
+    async unfollowUser(id: string, currentUserId: string) {
         const alreadyFollowed = await this.prisma.followers.findUnique({
             where: {
                 who_follows_who_followed: {
                     who_follows: currentUserId,
-                    who_followed: id.id,
+                    who_followed: id,
                 },
             },
         });
 
-        if(alreadyFollowed) {
+        if (alreadyFollowed) {
             return this.prisma.followers.delete({
                 where: {
                     who_follows_who_followed: {
                         who_follows: currentUserId,
-                        who_followed: id.id,
+                        who_followed: id,
                     }
                 }
             })
         }
     }
 
-    async findFollowed(id, currentUserId: string) {
-        console.log(id.id)
+    async findFollowed(id: string, currentUserId: string) {
+        console.log(id)
         return this.prisma.followers.findUnique({
             where: {
                 who_follows_who_followed: {
                     who_follows: currentUserId,
-                    who_followed: id.id,
+                    who_followed: id,
                 }
             }
         });

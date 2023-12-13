@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useRef} from "react";
 import Wavesurfer from "wavesurfer.js";
 import {IconPlayerPause, IconPlayerPlay} from "@tabler/icons-react";
-import {Button, Flex, Group, Loader, UnstyledButton} from "@mantine/core";
+import {Button, Flex, Group, Loader, Skeleton, UnstyledButton} from "@mantine/core";
 import {playBeat} from "../../http/beatsAPI";
 
 const Waveform = ({audio, beat}) => {
@@ -60,7 +60,6 @@ const Waveform = ({audio, beat}) => {
                 // }
 
 
-
             });
 
             // Load audio from a remote url.
@@ -78,7 +77,6 @@ const Waveform = ({audio, beat}) => {
     }, []);
 
 
-
     const playAudio = () => {
         playBeat(beat)
         // Check if the audio is already playing
@@ -92,18 +90,16 @@ const Waveform = ({audio, beat}) => {
     };
 
     return (
-        <>
-
+        <Skeleton radius="xl" height="75px" visible={playDisabled}>
             <Group w="100%" align="center">
-                <Button onClick={playAudio} variant="default" disabled={playDisabled} style={{border: 0}} title="PLay/pause" size="lg"
+                <Button onClick={playAudio} variant="default" disabled={playDisabled} style={{border: 0}}
+                        title="PLay/pause" size="lg"
                         radius="xl" pr="md" pl="md">
                     {isPlaying ? <IconPlayerPlay/> : <IconPlayerPause/>}
                 </Button>
-
                 <div id="waveform" style={{flexGrow: 1}}/>
             </Group>
-
-        </>
+        </Skeleton>
     );
 };
 

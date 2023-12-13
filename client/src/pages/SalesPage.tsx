@@ -1,8 +1,8 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {Container, Flex, Loader, Table} from "@mantine/core";
+import {Container, Flex, Loader, Table, Text} from "@mantine/core";
 import {jwtDecode} from "jwt-decode";
 import {getUserById, UserData} from "../http/usersAPI";
-import {getOrdersByUser, getSalesByUser} from "../http/orderAPI";
+import {getSalesByUser} from "../http/orderAPI";
 import {Context} from "../index";
 
 const SalesPage = () => {
@@ -15,7 +15,7 @@ const SalesPage = () => {
         const fetchOrders = async () => {
 
             if (currentUser) {
-                const data = await getSalesByUser(currentUser?.id)
+                const data = await getSalesByUser(currentUser?.user.id)
                 console.log(data)
                 orders.setOrders(data)
                 setLoading(false)
@@ -68,7 +68,7 @@ const SalesPage = () => {
         fetchUser()
     }, [userToken]);
 
-    if (loading || !orders.orders.length) {
+    if (loading) {
         return (
             <Flex
                 style={{
@@ -85,30 +85,35 @@ const SalesPage = () => {
 
     return (
         <Container size="xl" style={{paddingTop: '95px', display: 'flex', flexDirection: 'column', width: '100%'}}>
-            <Table stickyHeader stickyHeaderOffset={60} verticalSpacing="sm">
-                <Table.Thead>
-                    <Table.Tr>
-                        <Table.Th>ID</Table.Th>
-                        <Table.Th>Consumer</Table.Th>
-                        <Table.Th>Product</Table.Th>
-                        <Table.Th>Purchase Date</Table.Th>
-                        <Table.Th>License Type</Table.Th>
-                        <Table.Th>Order Price</Table.Th>
-                    </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                    {orders.orders.map(order => (
-                        <Table.Tr key={order.id}>
-                            <Table.Td>{order.id}</Table.Td>
-                            <Table.Td>{order.users_order_history_consumer_idTousers.username}</Table.Td>
-                            <Table.Td>{order.beats.name}</Table.Td>
-                            <Table.Td>{order.purchase_date}</Table.Td>
-                            <Table.Td>{order.licenses.license_types.license_type}</Table.Td>
-                            <Table.Td>${order.licenses.price}</Table.Td>
+            {orders.orders.length ? (
+                <Table stickyHeader stickyHeaderOffset={60} verticalSpacing="sm">
+                    <Table.Thead>
+                        <Table.Tr>
+                            <Table.Th>ID</Table.Th>
+                            <Table.Th>Consumer</Table.Th>
+                            <Table.Th>Product</Table.Th>
+                            <Table.Th>Purchase Date</Table.Th>
+                            <Table.Th>License Type</Table.Th>
+                            <Table.Th>Order Price</Table.Th>
                         </Table.Tr>
-                    ))}
-                </Table.Tbody>
-            </Table>
+                    </Table.Thead>
+                    <Table.Tbody>
+                        {orders.orders.map(order => (
+                            <Table.Tr key={order.id}>
+                                <Table.Td>{order.id}</Table.Td>
+                                <Table.Td>{order.users_order_history_consumer_idTousers.username}</Table.Td>
+                                <Table.Td>{order.beats.name}</Table.Td>
+                                <Table.Td>{order.purchase_date}</Table.Td>
+                                <Table.Td>{order.licenses.license_types.license_type}</Table.Td>
+                                <Table.Td>${order.licenses.price}</Table.Td>
+                            </Table.Tr>
+                        ))}
+                    </Table.Tbody>
+                </Table>
+            ) : (
+                <Text w="100%" fw={800} style={{display: 'flex', justifyContent: 'center'}}>No sales found</Text>
+            )}
+
         </Container>
     );
 };

@@ -10,7 +10,7 @@ import {
 import {Group, Avatar, Text, Menu, UnstyledButton, Button} from '@mantine/core';
 import UserButton from "./UserButton";
 import LinkComponent from "../router/LinkComponent";
-import {MAIN_ROUTE, USER_ROUTE} from "../../routes/consts";
+import {MAIN_ROUTE, MY_MEDIA_ROUTE, USER_ROUTE} from "../../routes/consts";
 import {observer} from "mobx-react-lite";
 import {Context} from "../../index";
 import {useNavigate} from "react-router-dom";
@@ -58,18 +58,18 @@ const UserMenu: React.FC<UserMenuProps> = observer(({image, name, email}) => {
                         My profile
                     </Menu.Item>
                 </LinkComponent>
-                <LinkComponent to={MAIN_ROUTE} underline="never"
-                               style={{textDecoration: 'none'}}
-                >
-                    <Menu.Item
-                        leftSection={<IconChartHistogram/>}
-                        component="a"
-                        target="_blank"
-                    >
-                        My statistics
-                    </Menu.Item>
-                </LinkComponent>
-                <LinkComponent to={MAIN_ROUTE} underline="never"
+                {/*<LinkComponent to={MAIN_ROUTE} underline="never"*/}
+                {/*               style={{textDecoration: 'none'}}*/}
+                {/*>*/}
+                {/*    <Menu.Item*/}
+                {/*        leftSection={<IconChartHistogram/>}*/}
+                {/*        component="a"*/}
+                {/*        target="_blank"*/}
+                {/*    >*/}
+                {/*        My statistics*/}
+                {/*    </Menu.Item>*/}
+                {/*</LinkComponent>*/}
+                <LinkComponent to={MY_MEDIA_ROUTE} underline="never"
                                style={{textDecoration: 'none'}}
                 >
                     <Menu.Item

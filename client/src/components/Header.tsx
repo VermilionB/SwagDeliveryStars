@@ -77,7 +77,7 @@ const Header: React.FC = observer(() => {
         fetchUser().then(data => {
             const avatarFetch = async () => {
                 if (currentUser) {
-                    const avatar = await fetchAvatarFile(currentUser.avatar_url);
+                    const avatar = await fetchAvatarFile(currentUser.user.avatar_url);
                     setAvatar(avatar);
                 }
             }
@@ -90,7 +90,7 @@ const Header: React.FC = observer(() => {
         const fetchAvatar = async () => {
             try {
                 if (currentUser) {
-                    const data = await fetchAvatarFile(currentUser.avatar_url);
+                    const data = await fetchAvatarFile(currentUser.user.avatar_url);
                     user.setCurrentUser(currentUser)
                     setAvatar(data);
                 }
@@ -101,7 +101,6 @@ const Header: React.FC = observer(() => {
 
         fetchAvatar();
     }, [currentUser, user]);
-
 
 
     return (
@@ -168,35 +167,39 @@ const Header: React.FC = observer(() => {
                         >
                             All Beats
                         </LinkComponent>
-                        <LinkComponent
-                            to={ORDERS_ROUTE}
-                            onClick={() => handleLinkClick(ORDERS_ROUTE)}
-                            className="custom-link"
-                            activeClassName="active"
-                            size="lg"
-                            underline="never"
-                            style={{
-                                color: 'teal',
-                                textDecoration: 'none',
-                            }}
-                        >
-                            My Orders
-                        </LinkComponent>
+                        {user.isAuth &&
+                            (
+                                <><LinkComponent
+                                    to={ORDERS_ROUTE}
+                                    onClick={() => handleLinkClick(ORDERS_ROUTE)}
+                                    className="custom-link"
+                                    activeClassName="active"
+                                    size="lg"
+                                    underline="never"
+                                    style={{
+                                        color: 'teal',
+                                        textDecoration: 'none',
+                                    }}
+                                >
+                                    My Orders
+                                </LinkComponent>
 
-                        <LinkComponent
-                            to={SALES_ROUTE}
-                            onClick={() => handleLinkClick(SALES_ROUTE)}
-                            className="custom-link"
-                            activeClassName="active"
-                            size="lg"
-                            underline="never"
-                            style={{
-                                color: 'teal',
-                                textDecoration: 'none',
-                            }}
-                        >
-                            My Sales
-                        </LinkComponent>
+                                    <LinkComponent
+                                        to={SALES_ROUTE}
+                                        onClick={() => handleLinkClick(SALES_ROUTE)}
+                                        className="custom-link"
+                                        activeClassName="active"
+                                        size="lg"
+                                        underline="never"
+                                        style={{
+                                            color: 'teal',
+                                            textDecoration: 'none',
+                                        }}
+                                    >
+                                        My Sales
+                                    </LinkComponent>
+                                </>)
+                        }
                         <LinkComponent
                             to={MAIN_ROUTE}
                             className="custom-link"
@@ -224,7 +227,7 @@ const Header: React.FC = observer(() => {
                                 </Button>
                             </LinkComponent>
                             <UserMenu image={avatar}
-                                      name={currentUser?.username as string}
+                                      name={currentUser?.user.username as string}
                                       email={userToken.email as string}
                             />
                         </Group>

@@ -11,6 +11,8 @@ import { FileUploadModule } from './file-upload/file-upload.module';
 import { KeysModule } from './keys/keys.module';
 import { LicensesModule } from './licenses/licenses.module';
 import { OrdersModule } from './orders/orders.module';
+import { RatingsModule } from './ratings/ratings.module';
+import { CommentsModule } from './comments/comments.module';
 @Module({
   controllers: [],
   providers: [PrismaService, GenresService, AvatarGeneratorService],
@@ -24,6 +26,8 @@ import { OrdersModule } from './orders/orders.module';
     KeysModule,
     LicensesModule,
     OrdersModule,
+    RatingsModule,
+    CommentsModule,
   ]
 })
 export class AppModule {}

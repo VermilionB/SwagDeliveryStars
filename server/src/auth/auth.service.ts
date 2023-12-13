@@ -23,7 +23,7 @@ export class AuthService {
     async registration(userDto: UpdateUserDto, file?: Express.Multer.File) {
         const candidate = await this.userService.getUserByEmail(userDto.email);
         if (candidate) {
-            throw new HttpException('Пользователь с таким email существует', HttpStatus.BAD_REQUEST);
+            throw new HttpException('User with such email already exists', HttpStatus.BAD_REQUEST);
         }
         const user = await this.userService.create({...userDto}, file)
         return this.generateToken(user)
@@ -43,10 +43,10 @@ export class AuthService {
             if (passwordEquals) {
                 return user;
             } else {
-                throw new UnauthorizedException({message: 'Некорректный ввод пароля'})
+                throw new UnauthorizedException({message: 'Incorrect password confirmation'})
             }
         }
-        throw new UnauthorizedException({message: 'Некорректный ввод почты'})
+        throw new UnauthorizedException({message: 'Incorrect password entered'})
     }
 
     async check(req) {

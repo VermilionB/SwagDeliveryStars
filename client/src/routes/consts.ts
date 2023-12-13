@@ -8,3 +8,5 @@ export const USER_ROUTE = '/user'
 export const CREATE_MEDIA_ROUTE = '/create-media'
 export const ALL_BEATS_ROUTE = '/beats'
 
+export const MY_MEDIA_ROUTE = 'my_media'
+

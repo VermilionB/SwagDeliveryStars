@@ -10,7 +10,7 @@ import {
     TextInput,
     Stack,
     Select,
-    Textarea, NumberInput, CloseButton, Checkbox, Flex, Loader
+    Textarea, NumberInput, CloseButton, Checkbox, Flex, Loader, LoadingOverlay
 } from "@mantine/core";
 import {jwtDecode} from "jwt-decode";
 import {createBeat} from "../http/beatsAPI";
@@ -24,7 +24,8 @@ import {useNavigate} from "react-router-dom";
 import StepsBeatCreating from "../components/stepper/StepsBeatCreating";
 import {getAllKeys} from "../http/keysAPi";
 import {getAllLicensesTypes} from "../http/licensesAPI";
-import {MAIN_ROUTE} from "../routes/consts";
+import {ALL_BEATS_ROUTE, MAIN_ROUTE} from "../routes/consts";
+import {useDisclosure} from "@mantine/hooks";
 
 
 const CreateBeatPage = observer(() => {
@@ -36,7 +37,6 @@ const CreateBeatPage = observer(() => {
     const [zipFile, setZipFile] = useState<File | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [isCreateClicked, setIsCreateClicked] = useState(false)
-    const [loading, setLoading] = useState(false)
 
     const [selectedGenre, setSelectedGenre] = useState<string | null>('');
     const [selectedKey, setSelectedKey] = useState<string | null>('');
@@ -56,6 +56,9 @@ const CreateBeatPage = observer(() => {
     const [showAlert, setShowAlert] = useState(false);
     const [activeStep, setActiveStep] = useState(0);
     const [nextStepDisabled, setNextStepDisabled] = useState(true)
+
+    const [loadingOverlayVisible, {toggle: toggleLoadingOverlay}] = useDisclosure(false); // State to control loading overlay
+
     const nextStep = () => setActiveStep((current) => (current <= 3 ? current + 1 : current));
     const prevStep = () => setActiveStep((current) => (current > 0 ? current - 1 : current));
     const clearFile = () => {
@@ -65,46 +68,18 @@ const CreateBeatPage = observer(() => {
     };
 
     const onFileChange = (newFile: File | null) => {
-        if (newFile) {
-            setImageFile(newFile);
-            setImageURL(URL.createObjectURL(newFile));
-        } else {
-            setImageFile(null);
-            setImageURL(null);
-        }
+        setImageFile(newFile);
+        setImageURL(newFile !== null ? URL.createObjectURL(newFile) : null);
     };
 
-    const clearMp3File = () => {
-        setMp3File(null)
-    }
-    const onMp3FileChange = (newFile: File | null) => {
-        if (newFile) {
-            setMp3File(newFile);
-        } else {
-            setMp3File(null);
-        }
-    };
-    const clearWavFile = () => {
-        setWavFile(null)
-    }
-    const onWavFileChange = (newFile: File | null) => {
-        if (newFile) {
-            setWavFile(newFile);
-        } else {
-            setWavFile(null);
-        }
-    };
-    const clearZipFile = () => {
-        setZipFile(null)
-    }
+    const clearMp3File = () => setMp3File(null)
+    const onMp3FileChange = (newFile: File | null) => setMp3File(newFile)
+    const clearWavFile = () => setWavFile(null)
+    const onWavFileChange = (newFile: File | null) => setWavFile(newFile);
 
-    const onZipFileChange = (newFile: File | null) => {
-        if (newFile) {
-            setZipFile(newFile);
-        } else {
-            setZipFile(null);
-        }
-    };
+    const clearZipFile = () => setZipFile(null);
+
+    const onZipFileChange = (newFile: File | null) => setZipFile(newFile);
 
     const create = async () => {
         const boundary = 'blob_boundary_beat';
@@ -125,35 +100,36 @@ const CreateBeatPage = observer(() => {
         try {
             console.log(selectedKey, bpm)
             if (!mp3File || !wavFile || !zipFile || !imageFile) {
-                console.log('error')
-            } else {
-                formData.append(`mp3_file`, mp3File);
-                formData.append(`wav_file`, wavFile);
-                formData.append(`zip_file`, zipFile);
-                formData.append(`image_file`, imageFile);
+                console.log('error');
+                return;
+            }
+            formData.append(`mp3_file`, mp3File);
+            formData.append(`wav_file`, wavFile);
+            formData.append(`zip_file`, zipFile);
+            formData.append(`image_file`, imageFile);
 
-                if (selectedGenre) {
-                    formData.append('genreId', selectedGenre);
-                }
-                formData.append('name', title);
-                formData.append('description', description);
-                formData.append('bpm', bpm.toString());
-                if (selectedKey) {
-                    formData.append('key', selectedKey);
-                }
-                tags.map(tag => {
-                    formData.append('tags', tag);
-                })
-                formData.append('isFree', isFree.toString())
-                formData.append('licenses', JSON.stringify(licensePrices))
+            if (selectedGenre) {
+                formData.append('genreId', selectedGenre);
+            }
+            formData.append('name', title);
+            formData.append('description', description);
+            formData.append('bpm', bpm.toString());
+            if (selectedKey) {
+                formData.append('key', selectedKey);
+            }
+            tags.map(tag => {
+                formData.append('tags', tag);
+            })
+            console.log(isFree, isFree.toString())
+            formData.append('isFree', isFree ? isFree.toString() : '')
+            formData.append('licenses', JSON.stringify(licensePrices))
 
-                setLoading(true); // Установите флаг загрузки перед запросом
-                const data = await createBeat(formData, config);
-                setLoading(false); // Сбросите флаг загрузки после получения результата
+            toggleLoadingOverlay()
+            const data = await createBeat(formData, config);
+            toggleLoadingOverlay()
 
-                if (data) {
-                    navigate(MAIN_ROUTE);
-                }
+            if (data) {
+                navigate(ALL_BEATS_ROUTE);
             }
         } catch (err: any) {
             setAlertMessage(err.message);
@@ -189,33 +165,21 @@ const CreateBeatPage = observer(() => {
     }, []);
 
     useEffect(() => {
-        console.log(licensePrices)
         if (imageFile && mp3File && wavFile && zipFile && activeStep === 0) {
             setNextStepDisabled(false)
         } else if (title && selectedGenre && description && bpm && tags && selectedKey && activeStep === 1) {
             setNextStepDisabled(false)
         } else if (activeStep === 2) {
             setNextStepDisabled(false)
-        } else if (activeStep == 3) {
+        } else if (activeStep === 3) {
             setNextStepDisabled(false)
         } else setNextStepDisabled(true)
     }, [imageFile, mp3File, wavFile, zipFile, description, bpm, tags, selectedGenre, activeStep, licensePrices]);
 
+    useEffect(() => {
+        console.log(isFree)
+    }, [isFree]);
 
-    if (loading) {
-        return (
-            <Flex
-                style={{
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "100%",
-                    height: window.screen.height - 154,
-                }}
-            >
-                <Loader color="blue" type="bars"/>
-            </Flex>
-        );
-    }
 
     return (
         <Container fluid style={{
@@ -223,7 +187,6 @@ const CreateBeatPage = observer(() => {
             flexDirection: 'column',
             justifyContent: 'space-between',
             width: '100%',
-
             minHeight: '100%',
             paddingTop: '95px'
         }}>
@@ -239,15 +202,7 @@ const CreateBeatPage = observer(() => {
                     <Container mt={10} size="xs" style={{padding: "25px"}}>
                         <Stack>
                             <Group justify="center" gap="sm">
-                                <div>
-                                    {
-                                        imageURL ? (
-                                            <Image src={imageURL} h={200} w={200} radius="md"/>
-                                        ) : (
-                                            <Image src={missingImage} h={200} w={200} radius="md"/>
-                                        )
-                                    }
-                                </div>
+                                <Image src={imageURL ?? missingImage} h={200} w={200} radius="md"/>
                             </Group>
                             <Group justify="center">
                                 <FileButton resetRef={resetRef} onChange={onFileChange} accept="image/png,image/jpeg">
@@ -390,7 +345,7 @@ const CreateBeatPage = observer(() => {
                 {activeStep === 2 && (
                     <Container mt={10} size="md" style={{padding: "25px"}}>
                         <Stack gap="sm" mt={10}>
-                            {beats.licensesTypes.map((lt) => (
+                            {beats.licensesTypes.slice().sort((a, b) => +a.id - +b.id).map((lt) => (
                                 <Group key={lt.id} justify="space-between">
                                     <NumberInput
                                         leftSection={<IconCurrencyDollar/>}
@@ -406,10 +361,11 @@ const CreateBeatPage = observer(() => {
                                         style={{flexGrow: 1}}
                                         onChange={(value) => handlePriceChange(+lt.id, +value)}
                                     />
-                                    <Checkbox checked={isFree}
-                                              label="Can be free downloaded"
-                                              onChange={(event) => setIsFree(event.currentTarget.checked)}/> </Group>
+                                </Group>
                             ))}
+                            <Checkbox checked={isFree}
+                                      label="Can be free downloaded"
+                                      onChange={(event) => setIsFree(event.currentTarget.checked)}/>
                         </Stack>
                     </Container>
                 )}
@@ -430,6 +386,9 @@ const CreateBeatPage = observer(() => {
                     )}
                 </Group>
             </Group>
+            <LoadingOverlay visible={loadingOverlayVisible} zIndex={1000} overlayProps={{radius: 'sm', blur: 2}}
+                            loaderProps={{color: 'teal', type: 'bars'}}/>
+
         </Container>
     );
 });
