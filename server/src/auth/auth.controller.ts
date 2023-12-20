@@ -2,6 +2,7 @@ import {Body, Controller, Get, Post, UploadedFile, UseInterceptors, Req} from '@
 import {AuthService} from './auth.service';
 import {UpdateUserDto} from "../users/dto/update-user.dto";
 import {FileInterceptor} from "@nestjs/platform-express";
+import {CreateUserDto} from "../users/dto/create-user.dto";
 
 @Controller('auth')
 export class AuthController {
@@ -9,13 +10,13 @@ export class AuthController {
     }
 
     @Post('/login')
-    login(@Body() userDto: UpdateUserDto) {
+    login(@Body() userDto: CreateUserDto) {
         return this.authService.login(userDto)
     }
 
     @Post('/registration')
     @UseInterceptors(FileInterceptor('file'))
-    registration(@Body() userDto: UpdateUserDto, @UploadedFile() file?: Express.Multer.File) {
+    registration(@Body() userDto: CreateUserDto, @UploadedFile() file?: Express.Multer.File) {
         return this.authService.registration(userDto, file)
     }
 

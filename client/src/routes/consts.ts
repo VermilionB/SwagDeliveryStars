@@ -7,6 +7,9 @@ export const ADMIN_ROUTE = '/admin'
 export const USER_ROUTE = '/user'
 export const CREATE_MEDIA_ROUTE = '/create-media'
 export const ALL_BEATS_ROUTE = '/beats'
-
-export const MY_MEDIA_ROUTE = 'my_media'
+export const ALL_USERS_ROUTE = '/producers'
+export const EDIT_PROFILE_ROUTE = '/profile_edit'
+export const MY_MEDIA_ROUTE = '/my_media'
+export const MY_STATS_ROUTE = '/my_stats'
+export const ABOUT_ROUTE = '/about'
 

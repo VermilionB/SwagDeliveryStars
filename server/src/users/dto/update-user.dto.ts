@@ -9,10 +9,6 @@ export class UpdateUserDto {
     @IsOptional()
     email: string;
 
-    @IsOptional()
-    @IsString()
-    password: string;
-
     @IsString()
     @IsOptional()
     username: string;
@@ -56,12 +52,4 @@ export class UpdateUserDto {
     @IsString()
     @IsOptional()
     twitch: string;
-
-    @IsBoolean()
-    @IsOptional()
-    is_banned: boolean;
-
-    @IsInt()
-    @IsOptional()
-    role_id: number;
 }

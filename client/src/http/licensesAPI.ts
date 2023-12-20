@@ -6,7 +6,7 @@ export const getAllLicensesTypes = async () => {
 }
 
 export const getLicenseTypeById = async (id :number) => {
-    console.log(id)
+
     const {data} = await $host.get(`http://localhost:5000/api/licenses/types/${id}`)
     return data
 }

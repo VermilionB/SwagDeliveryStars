@@ -13,12 +13,12 @@ export class OrdersController {
 
   @Get('/orders/:consumerId')
   async getOrdersByUser(@Param('consumerId') consumerId: string) {
-    return await this.ordersService.getOrdersByUser(consumerId);
+    return this.ordersService.getOrdersByUser(consumerId);
   }
 
   @Get('/sales/:sellerId')
   async getSalesByUser(@Param('sellerId') sellerId: string) {
-    return await this.ordersService.getSalesByUser(sellerId);
+    return this.ordersService.getSalesByUser(sellerId);
   }
 
 }

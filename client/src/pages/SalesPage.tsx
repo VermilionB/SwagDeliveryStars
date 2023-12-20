@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {Container, Flex, Loader, Table, Text} from "@mantine/core";
+import {Container, Flex, Loader, Table, Text, Title} from "@mantine/core";
 import {jwtDecode} from "jwt-decode";
 import {getUserById, UserData} from "../http/usersAPI";
 import {getSalesByUser} from "../http/orderAPI";
@@ -16,15 +16,11 @@ const SalesPage = () => {
 
             if (currentUser) {
                 const data = await getSalesByUser(currentUser?.user.id)
-                console.log(data)
                 orders.setOrders(data)
                 setLoading(false)
             }
         }
         fetchOrders()
-        orders.orders.map(order => {
-            console.log(order)
-        })
     }, [currentUser]);
 
     useEffect(() => {
@@ -84,9 +80,10 @@ const SalesPage = () => {
     }
 
     return (
-        <Container size="xl" style={{paddingTop: '95px', display: 'flex', flexDirection: 'column', width: '100%'}}>
+        <Container size="xl" style={{paddingTop: '95px', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%'}}>
+            <Title order={2} mb={20} c="teal">My Sales</Title>
             {orders.orders.length ? (
-                <Table stickyHeader stickyHeaderOffset={60} verticalSpacing="sm">
+                <Table stickyHeader stickyHeaderOffset={60} verticalSpacing="sm" highlightOnHover>
                     <Table.Thead>
                         <Table.Tr>
                             <Table.Th>ID</Table.Th>

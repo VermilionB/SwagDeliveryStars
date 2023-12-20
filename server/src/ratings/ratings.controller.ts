@@ -14,12 +14,11 @@ export class RatingsController {
   @Roles(Role.Admin, Role.Producer)
   @Post('/create/:beatId')
   async createRating(@Body() dto: CreateRatingDto, @CurrentUser('id') userId: string, @Param('beatId') beatId: string) {
-    return this.ratingsService.createRating(dto, userId, beatId)
+    return this.ratingsService.createRating(dto, beatId, userId)
   }
 
   @Get('/user/:userId/beat/:beatId')
   async getRatingByUserAndBeat(@Param('beatId') beatId: string, @Param('userId') userId: string) {
-    return this.ratingsService.getRatingByUserAndBeat(beatId, userId)
-
+    return await this.ratingsService.getRatingByUserAndBeat(beatId, userId)
   }
 }

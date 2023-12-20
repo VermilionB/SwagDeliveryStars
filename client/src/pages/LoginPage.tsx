@@ -2,7 +2,7 @@ import React, {useContext, useState} from 'react';
 import {Button, Group, TextInput, Text, Alert} from "@mantine/core";
 import {IconAt, IconExclamationCircle, IconLock, IconUser} from "@tabler/icons-react";
 import { useNavigate} from "react-router-dom";
-import {MAIN_ROUTE, REGISTRATION_ROUTE} from "../routes/consts";
+import {ALL_BEATS_ROUTE, MAIN_ROUTE, REGISTRATION_ROUTE} from "../routes/consts";
 import LinkComponent from "../components/router/LinkComponent";
 import {login} from "../http/usersAPI";
 import {observer} from "mobx-react-lite";
@@ -28,16 +28,17 @@ const LoginPage = observer(() => {
         try {
             setAlertMessage('')
             setShowAlert(false)
+            const data = await login(email, password)
+            if(data){
+                user.setUser(data);
+                user.setIsAuth(true);
+                navigate(ALL_BEATS_ROUTE);
+            }
         } catch (err: any) {
-            setAlertMessage(err.message)
+            setAlertMessage(err.response.data.message)
             setShowAlert(true)
         }
-        const data = await login(email, password)
-        if(data){
-            user.setUser(data);
-            user.setIsAuth(true);
-            navigate(MAIN_ROUTE);
-        }
+
     }
     const closeError = () => {
         setAlertMessage('')

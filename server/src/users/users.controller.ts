@@ -22,12 +22,9 @@ import {AuthGuard} from "@nestjs/passport";
 export class UsersController {
     constructor(private readonly usersService: UsersService) {
     }
-
-    @UseGuards(AuthGuard('jwt'), RolesGuard)
-    @Roles(Role.Admin, Role.Producer)
     @Get()
-    async getAllUsers() {
-        return this.usersService.getAll();
+    async getAllUsers(@Query('username') username: string, @Query('userId') userId : string | null) {
+        return this.usersService.getAll(username, userId);
     }
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -49,22 +46,21 @@ export class UsersController {
     @Roles(Role.Admin, Role.Producer)
     @Post('/follow/:id')
     async followUser(@Param('id') id: string, @CurrentUser('id') currentUserId: string) {
-        console.log(`id --------- ${id}`)
         return await this.usersService.followUser(id, currentUserId)
     }
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.Admin, Role.Producer)
     @Post('/unfollow/:id')
-    async unfollowUser(@Param('id') id: string, @CurrentUser('id') currentUserId: string){
-            return await this.usersService.unfollowUser(id, currentUserId)
+    async unfollowUser(@Param('id') id: string, @CurrentUser('id') currentUserId: string) {
+        return await this.usersService.unfollowUser(id, currentUserId)
     }
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.Admin, Role.Producer)
     @Get('/findFollowed/:id')
-    async findFollowed(@Param('id') id: string, @CurrentUser('id') currentUserId: string){
-        // console.log(id)
+    async findFollowed(@Param('id') id: string, @CurrentUser('id') currentUserId: string) {
+
         return await this.usersService.findFollowed(id, currentUserId)
     }
 
@@ -73,4 +69,17 @@ export class UsersController {
         return await this.usersService.getUserById(id);
     }
 
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.Admin)
+    @Put('/block/:id')
+    async blockUser(@Param('id') userId: string) {
+        return await this.usersService.blockUser(userId)
+    }
+
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Roles(Role.Admin)
+    @Put('/unblock/:id')
+    async unblockUser(@Param('id') userId: string) {
+        return await this.usersService.unblockUser(userId)
+    }
 }

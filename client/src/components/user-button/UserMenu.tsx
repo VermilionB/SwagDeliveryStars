@@ -4,17 +4,18 @@ import {
     IconBrandTiktok,
     IconChartHistogram,
     IconChevronRight, IconLogout,
-    IconSettings, IconTrash,
+    IconSettings, IconShoppingCart, IconShoppingCartShare, IconTrash,
     IconUser
 } from '@tabler/icons-react';
 import {Group, Avatar, Text, Menu, UnstyledButton, Button} from '@mantine/core';
 import UserButton from "./UserButton";
 import LinkComponent from "../router/LinkComponent";
-import {MAIN_ROUTE, MY_MEDIA_ROUTE, USER_ROUTE} from "../../routes/consts";
+import {MAIN_ROUTE, MY_MEDIA_ROUTE, MY_STATS_ROUTE, ORDERS_ROUTE, SALES_ROUTE, USER_ROUTE} from "../../routes/consts";
 import {observer} from "mobx-react-lite";
 import {Context} from "../../index";
 import {useNavigate} from "react-router-dom";
 import {jwtDecode} from "jwt-decode";
+
 interface UserMenuProps extends React.ComponentPropsWithoutRef<'button'> {
     image: string;
     name: string;
@@ -45,10 +46,11 @@ const UserMenu: React.FC<UserMenuProps> = observer(({image, name, email}) => {
                 />
             </Menu.Target>
             <Menu.Dropdown>
+                <Menu.Label>Profile</Menu.Label>
                 <LinkComponent
                     to={USER_ROUTE + `/${userId?.id || ''}`}
                     underline="never"
-                    style={{ textDecoration: 'none' }}
+                    style={{textDecoration: 'none'}}
                 >
                     <Menu.Item
                         leftSection={<IconUser/>}
@@ -58,17 +60,17 @@ const UserMenu: React.FC<UserMenuProps> = observer(({image, name, email}) => {
                         My profile
                     </Menu.Item>
                 </LinkComponent>
-                {/*<LinkComponent to={MAIN_ROUTE} underline="never"*/}
-                {/*               style={{textDecoration: 'none'}}*/}
-                {/*>*/}
-                {/*    <Menu.Item*/}
-                {/*        leftSection={<IconChartHistogram/>}*/}
-                {/*        component="a"*/}
-                {/*        target="_blank"*/}
-                {/*    >*/}
-                {/*        My statistics*/}
-                {/*    </Menu.Item>*/}
-                {/*</LinkComponent>*/}
+                <LinkComponent to={MY_STATS_ROUTE} underline="never"
+                               style={{textDecoration: 'none'}}
+                >
+                    <Menu.Item
+                        leftSection={<IconChartHistogram/>}
+                        component="a"
+                        target="_blank"
+                    >
+                        My statistics
+                    </Menu.Item>
+                </LinkComponent>
                 <LinkComponent to={MY_MEDIA_ROUTE} underline="never"
                                style={{textDecoration: 'none'}}
                 >
@@ -80,26 +82,30 @@ const UserMenu: React.FC<UserMenuProps> = observer(({image, name, email}) => {
                         My media
                     </Menu.Item>
                 </LinkComponent>
-                <LinkComponent to={MAIN_ROUTE} underline="never"
-                               style={{textDecoration: 'none'}}
-                >
+
+                <Menu.Divider/>
+                <Menu.Label>Management</Menu.Label>
+                <LinkComponent to={ORDERS_ROUTE} underline="never"
+                               style={{textDecoration: 'none'}}>
                     <Menu.Item
-                        leftSection={<IconSettings/>}
-                        component="a"
-                        target="_blank"
+                        leftSection={<IconArrowsLeftRight/>}
                     >
-                        Settings
+                        Order history
+                    </Menu.Item>
+                </LinkComponent>
+
+                <LinkComponent to={SALES_ROUTE} underline="never"
+                               style={{textDecoration: 'none'}}>
+                    <Menu.Item
+                        leftSection={<IconShoppingCartShare/>}
+                    >
+                        Sales history
                     </Menu.Item>
                 </LinkComponent>
 
                 <Menu.Divider/>
+                {/*<Menu.Label>Danger zone</Menu.Label>*/}
 
-                <Menu.Label>Danger zone</Menu.Label>
-                <Menu.Item
-                    leftSection={<IconArrowsLeftRight/>}
-                >
-                    Order history
-                </Menu.Item>
                 {user.isAuth &&
                     <Menu.Item
                         color="red"

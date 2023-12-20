@@ -30,14 +30,11 @@ export class FileSizeInterceptor implements NestInterceptor {
             zip_file: 1024 * 1024 * 500, // Например, 500MB для zip
         };
 
-        // console.log(files)
 
         for (let i = 0; i < files.length - 1; i++) {
 
             const file = files[i]
             const maxFileSize = sizeLimits[i];
-
-            // console.log(file)
 
             if (file.size > maxFileSize) {
                 throw new BadRequestException(`File size exceeds the maximum allowed size for ${file.filename}.`);

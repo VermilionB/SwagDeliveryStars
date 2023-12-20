@@ -39,7 +39,9 @@ export class RatingsService {
     }
 
     async getRatingByUserAndBeat(beatId: string, userId: string) {
-        return this.prisma.ratings.findFirst({
+        if(beatId === undefined || userId === undefined) return {rating: 0}
+
+        const rating = await this.prisma.ratings.findFirst({
             where: {
                 beat_id: beatId,
                 user_id: userId
@@ -48,5 +50,9 @@ export class RatingsService {
                 rating: true
             }
         })
+        if(rating !== null) {
+            return rating
+        }
+        else return {rating: 0}
     }
 }

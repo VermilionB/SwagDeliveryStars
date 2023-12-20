@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {Container, Stack} from "@mantine/core";
+import {Container, Stack, Text} from "@mantine/core";
 import {Context} from "../../index";
 import {observer} from "mobx-react-lite";
 import {fetchAvatarFile, findFollowed, getUserById, UserData} from "../../http/usersAPI";
@@ -21,7 +21,6 @@ const MyMediaPage = observer(() => {
     useEffect(() => {
         try {
             const storedToken = localStorage.getItem('token');
-            console.log(storedToken)
             if (storedToken) {
                 setUserToken(jwtDecode(storedToken));
             } else {
@@ -35,7 +34,6 @@ const MyMediaPage = observer(() => {
     useEffect(() => {
         try {
             const storedToken = localStorage.getItem('token');
-            console.log(storedToken)
             if (storedToken) {
                 setUserToken(jwtDecode(storedToken));
             } else {
@@ -51,7 +49,6 @@ const MyMediaPage = observer(() => {
             try {
                 if (userToken.id) {
                     const data = await getUserById(userToken.id);
-                    console.log(data)
                     setCurrentUser(data);
                 }
             } catch (error) {
@@ -65,9 +62,11 @@ const MyMediaPage = observer(() => {
     return (
         <Container size="xl" style={{paddingTop: '95px', width: '100%'}}>
             <Stack style={{display: 'flex', width: '100%', flexDirection: 'column'}}>
-                {beats.beats.map(beat => (
+                {beats.beats.length ? beats.beats.map(beat => (
                     <SmallBeatCardComponent key={beat.id} beat={beat}/>
-                ))}
+                )) : (
+                    <Text w="100%" fw={800} style={{display: 'flex', justifyContent: 'center'}}>No media found</Text>
+                )}
             </Stack>
         </Container>
     );

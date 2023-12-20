@@ -12,11 +12,11 @@ import {
     Text,
     Divider,
     Accordion,
-    Avatar, TextInput, Modal, Rating, Skeleton
+    Avatar, TextInput, Modal, Rating, Skeleton, Title
 } from "@mantine/core";
 import {
     checkIfBeatLiked,
-    checkIfBeatReposted,
+    checkIfBeatReposted, deleteBeat,
     getBeatById,
     likeBeatAction, repostBeatAction,
     unlikeBeatAction,
@@ -26,11 +26,11 @@ import {useNavigate, useParams} from "react-router-dom";
 import {fetchAvatarFile, getUserById, UserData} from "../../http/usersAPI";
 import Waveform from "../../components/player/Waveform";
 import {
-    IconCreditCardPay,
+    IconCreditCardPay, IconDownload,
     IconFileDescription, IconHash,
     IconHeart, IconHeartFilled,
     IconInfoSquareRounded, IconLicense,
-    IconRepeat, IconRepeatOff, IconSend, IconShoppingCart, IconTags
+    IconRepeat, IconRepeatOff, IconSend, IconShoppingCart, IconTags, IconX
 } from "@tabler/icons-react";
 import {getLicenseTypeById} from "../../http/licensesAPI";
 import {observer} from "mobx-react-lite";
@@ -38,9 +38,9 @@ import {Context} from "../../index";
 import {jwtDecode} from "jwt-decode";
 import {useDisclosure} from "@mantine/hooks";
 import LinkComponent from "../../components/router/LinkComponent";
-import {ALL_BEATS_ROUTE, USER_ROUTE} from "../../routes/consts";
+import {ALL_BEATS_ROUTE, ORDERS_ROUTE, USER_ROUTE} from "../../routes/consts";
 import {createOrder} from "../../http/orderAPI";
-import {createComment} from "../../http/commentsAPI";
+import {createComment, createRating, getRatingByUserAndBeat} from "../../http/commentsRatingsAPI";
 import {notifications} from "@mantine/notifications";
 import CommentComponent, {CommentComponentProps} from '../../components/comments/CommentComponent'
 
@@ -97,15 +97,20 @@ interface LicenseTypeInterface {
 interface CommentInterface {
     comment: string;
     users: {
+        id: string;
         username: string;
         avatar_url: string;
+        role_id: number;
     };
+    beat_id: string;
 }
 
 
 const SelectedBeatPage = observer(() => {
     const {user} = useContext(Context)
     const [opened, {open, close}] = useDisclosure(false);
+    const [confirmationOpened, {open: openConfirmation, close: closeConfirmation}] = useDisclosure(false);
+
     const navigate = useNavigate();
 
     const {id} = useParams();
@@ -114,7 +119,7 @@ const SelectedBeatPage = observer(() => {
     const [loading, setLoading] = useState(true);
     const [selectedBeat, setSelectedBeat] = useState<BeatInterface | null>(null);
     const [selectedLicense, setSelectedLicense] = useState<LicenseTypeInterface | null>(null);
-    const [userToken, setUserToken] = useState<{ id?: string, email?: string }>({});
+    const [userToken, setUserToken] = useState<{ id?: string, email?: string, role?: number}>({});
     const [currentUser, setCurrentUser] = useState<UserData | null>(null);
     const [avatar, setAvatar] = useState('')
 
@@ -137,9 +142,8 @@ const SelectedBeatPage = observer(() => {
     }, []);
 
     useEffect(() => {
-        console.log(audio)
+
         audio.length ? setAudioLoading(false) : setAudioLoading(true)
-        console.log(audioLoading)
     }, [audio]);
 
     useEffect(() => {
@@ -155,11 +159,9 @@ const SelectedBeatPage = observer(() => {
                         const audioPromise = fetchAvatarFile(beat.beat_files.mp3_file);
 
                         const [img, audio] = await Promise.all([imgPromise, audioPromise]);
-
                         setComments(beat.comments)
                         setImage(img);
                         setAudio(audio);
-                        console.log(audio)
                     }
                 } catch (error) {
                     console.error("Error fetching beat:", error);
@@ -177,6 +179,10 @@ const SelectedBeatPage = observer(() => {
             const check = async () => {
                 const liked = await checkIfBeatLiked(selectedBeat.id);
                 const reposted = await checkIfBeatReposted(selectedBeat.id)
+                const userRatingToBeat = await getRatingByUserAndBeat(currentUser.user.id, selectedBeat.id)
+                if(userRatingToBeat) {
+                    setRating(userRatingToBeat)
+                }
                 if (liked) {
                     setIsLiked(true)
                 } else setIsLiked(false)
@@ -192,7 +198,6 @@ const SelectedBeatPage = observer(() => {
     useEffect(() => {
         try {
             const storedToken = localStorage.getItem('token');
-            console.log(storedToken)
             if (storedToken) {
                 setUserToken(jwtDecode(storedToken));
             } else {
@@ -206,7 +211,6 @@ const SelectedBeatPage = observer(() => {
     useEffect(() => {
         try {
             const storedToken = localStorage.getItem('token');
-            console.log(storedToken)
             if (storedToken) {
                 setUserToken(jwtDecode(storedToken));
             } else {
@@ -222,7 +226,6 @@ const SelectedBeatPage = observer(() => {
             try {
                 if (userToken.id) {
                     const data = await getUserById(userToken.id);
-                    console.log(data)
                     setCurrentUser(data);
                 }
             } catch (error) {
@@ -275,7 +278,7 @@ const SelectedBeatPage = observer(() => {
 
         if (order) {
             setLoading(false)
-            navigate(ALL_BEATS_ROUTE)
+            navigate(ORDERS_ROUTE)
             close()
         }
     }
@@ -350,20 +353,73 @@ const SelectedBeatPage = observer(() => {
             }
             if (selectedBeat) {
                 const newComment = await createComment(comment, selectedBeat?.id);
-                console.log(newComment)
                 const updatedComments = [...comments, newComment];
                 setComments(updatedComments);
                 setComment('');
             }
         } catch (err: any) {
             notifications.show({
+                icon: <IconX/>,
                 title: 'Error',
                 message: `Failed to comment beat: ${err.response.data.message}`,
                 color: 'red',
             });
         }
-
     }
+
+    const sendRating = async () => {
+        try {
+            if (rating === 0) {
+                return;
+            }
+            if (selectedBeat) {
+                await createRating(rating, selectedBeat?.id);
+            }
+        } catch (err: any) {
+            notifications.show({
+                icon: <IconX/>,
+                title: 'Error',
+                message: `Failed to rate beat: ${err.response.data.message}`,
+                color: 'red',
+            });
+        }
+    }
+
+    const downloadFile = async (key: string, mime: string) => {
+        const response = await fetchAvatarFile(key);
+        fetch(response, {
+            method: 'GET',
+
+        })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(new Blob([blob]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${selectedBeat?.name}.${mime}`;
+                document.body.appendChild(link);
+                link.click();
+                link.parentNode?.removeChild(link);
+            });
+    };
+
+    const handleDelete = async () => {
+        try {
+            if(selectedBeat) {
+                const deleted = await deleteBeat(selectedBeat.id);
+                if(deleted){
+                    closeConfirmation();
+                    navigate(ALL_BEATS_ROUTE)
+                }
+            }
+        } catch (err: any) {
+            notifications.show({
+                title: 'Error',
+                message: `Failed to delete beat: ${err.response.data.message}`,
+                color: 'red',
+            });
+        }
+    };
 
     if (loading || !selectedBeat || !audio || !image || !selectedLicense) {
         return (
@@ -410,129 +466,153 @@ const SelectedBeatPage = observer(() => {
                 </Card>
             </Modal>
 
-            <Card style={{width: '30%', marginBottom: '20px'}} shadow="sm" padding="lg" radius="lg" withBorder>
-                <Skeleton radius="lg" height="100%" visible={imageLoading}>
-                    <Image src={image} onLoad={() => setImageLoading(false)} radius="lg" mb="md"/>
-                </Skeleton>
-                <Card.Section style={{display: 'flex', justifyContent: 'center'}}>
-                    <Group justify="center">
-                        <Stack align="center" gap={1}>
-                            {!isLiked ? (
-                                <Button variant="default" style={{border: 0}} title="Like" size="lg" radius="xl" pr="md"
-                                        pl="md" onClick={likeBeat}>
-                                    <IconHeart size="30px"/>
-                                </Button>
-                            ) : (
-                                <Button variant="default" style={{border: 0}} title="Disike" size="lg" radius="xl"
-                                        pr="md"
-                                        pl="md" onClick={unlikeBeat}>
-                                    <IconHeartFilled size="30px"/>
-                                </Button>
-                            )}
+            <Modal opened={confirmationOpened} onClose={closeConfirmation} title="Confirm Deletion" centered
+                   miw="400px">
+                <Stack align="center" w="100%">
+                    <Text>Are you sure you want to delete this beat?</Text>
+                    <Group>
+                        <Button onClick={handleDelete} color="red">
+                            Yes, Delete
+                        </Button>
+                        <Button onClick={closeConfirmation}>Cancel</Button>
+                    </Group>
+                </Stack>
+            </Modal>
 
-                            {selectedBeat._count.likes}
-                        </Stack>
-                        <Stack align="center" gap={1}>
-                            {!(currentUser?.user.id === selectedBeat.users.id) ? (
-                                <>
-                                    {!isReposted ? (
-                                        <Button variant="default" style={{border: 0}} title="Repost" size="lg"
-                                                radius="xl"
-                                                pr="md"
-                                                pl="md" onClick={repostBeat}>
-                                            <IconRepeat size="30px"/>
-                                        </Button>
-                                    ) : (
-                                        <Button variant="default" style={{border: 0}} title="Repost" size="lg"
-                                                radius="xl"
-                                                pr="md"
-                                                pl="md" onClick={unrepostBeat}>
-                                            <IconRepeatOff size="30px"/>
-                                        </Button>
+            {selectedBeat.is_available ? (
+                <>
+                    <Box style={{width: '30%', marginBottom: '20px'}}>
+                        <Card style={{width: '100%'}} shadow="sm" padding="lg" radius="lg" withBorder>
+                            <Skeleton radius="lg" height="345px" visible={imageLoading} mb="md">
+                                <Image src={image} onLoad={() => setImageLoading(false)} radius="lg" />
+                            </Skeleton>
+                            <Card.Section style={{display: 'flex', justifyContent: 'center'}}>
+                                <Group justify="center">
+                                    <Stack align="center" gap={1}>
+                                        {!isLiked ? (
+                                            <Button variant="default" style={{border: 0}} title="Like" size="lg" radius="xl"
+                                                    pr="md"
+                                                    pl="md" onClick={likeBeat}>
+                                                <IconHeart size="30px"/>
+                                            </Button>
+                                        ) : (
+                                            <Button variant="default" style={{border: 0}} title="Disike" size="lg" radius="xl"
+                                                    pr="md"
+                                                    pl="md" onClick={unlikeBeat}>
+                                                <IconHeartFilled size="30px"/>
+                                            </Button>
+                                        )}
+
+                                        {selectedBeat._count.likes}
+                                    </Stack>
+                                    <Stack align="center" gap={1}>
+                                        {!(currentUser?.user.id === selectedBeat.users.id) ? (
+                                            <>
+                                                {!isReposted ? (
+                                                    <Button variant="default" style={{border: 0}} title="Repost" size="lg"
+                                                            radius="xl"
+                                                            pr="md"
+                                                            pl="md" onClick={repostBeat}>
+                                                        <IconRepeat size="30px"/>
+                                                    </Button>
+                                                ) : (
+                                                    <Button variant="default" style={{border: 0}} title="Repost" size="lg"
+                                                            radius="xl"
+                                                            pr="md"
+                                                            pl="md" onClick={unrepostBeat}>
+                                                        <IconRepeatOff size="30px"/>
+                                                    </Button>
+                                                )}
+                                            </>) : (
+                                            <Button variant="default" style={{border: 0}} title="Repost" size="lg" radius="xl"
+                                                    pr="md"
+                                                    pl="md">
+                                                <IconRepeat size="30px"/>
+                                            </Button>
+                                        )}
+                                        {selectedBeat._count.reposts}
+                                    </Stack>
+                                </Group>
+                            </Card.Section>
+                            <Card.Section py="xs" style={{display: 'flex', justifyContent: 'center'}}>
+                                <Stack align="center" gap={2} w="100%" px="lg"
+                                       style={{display: 'flex', justifyContent: 'stretch'}}>
+                                    <Text fw={800} size="lg" truncate="end" w="100%"
+                                          style={{textAlign: 'center'}}>{selectedBeat.name}</Text>
+                                    <LinkComponent to={USER_ROUTE + `/${selectedBeat.users.id}`} underline="never"
+                                                   style={{
+                                                       textDecoration: 'none'
+                                                   }}>
+                                        <Text fw={500} size="lg" c="dimmed">{selectedBeat.users.username}</Text>
+                                    </LinkComponent>
+
+                                    {userToken.role === 2 && (
+                                        <Button variant="light" color="red" onClick={openConfirmation}>Delete beat</Button>
                                     )}
-                                </>) : (
-                                <Button variant="default" style={{border: 0}} title="Repost" size="lg" radius="xl"
-                                        pr="md"
-                                        pl="md">
-                                    <IconRepeat size="30px"/>
-                                </Button>
-                            )}
-                            {selectedBeat._count.reposts}
-                        </Stack>
-                    </Group>
-                </Card.Section>
-                <Card.Section py="xs" style={{display: 'flex', justifyContent: 'center'}}>
-                    <Stack align="center" gap={2} w="100%" px="lg" style={{display: 'flex', justifyContent: 'stretch'}}>
-                        <Text fw={800} size="lg" truncate="end" w="100%">{selectedBeat.name}</Text>
-                        <LinkComponent to={USER_ROUTE + `/${selectedBeat.users.id}`} underline="never"
-                                       style={{
-                                           textDecoration: 'none'
-                                       }}>
-                            <Text fw={500} size="lg" c="dimmed">{selectedBeat.users.username}</Text>
-                        </LinkComponent>
-                    </Stack>
-                </Card.Section>
-                <Divider
-                    my="xs"
-                    labelPosition="center"
-                    label={
-                        <>
-                            <IconInfoSquareRounded size={16}/>
-                            <Box ml={5}>Information</Box>
-                        </>
-                    }
-                />
-                <Card.Section py="xs" style={{display: 'flex'}}>
-                    <Stack py="xs" style={{display: 'flex', width: '100%'}} px="lg">
-                        <Group justify="space-between">
-                            <Text c="dimmed">Key</Text>
-                            <Text fw={500}>{selectedBeat.keys.key}</Text>
-                        </Group>
-                        <Group justify="space-between" w="100%">
-                            <Text c="dimmed">Bpm</Text>
-                            <Text fw={500}>{selectedBeat.bpm}</Text>
-                        </Group>
-                        <Group justify="space-between" w="100%">
-                            <Text c="dimmed">Plays</Text>
-                            <Text fw={500}>{selectedBeat._count.plays}</Text>
-                        </Group>
-                    </Stack>
-                </Card.Section>
-                <Divider
-                    my="xs"
-                    labelPosition="center"
-                    label={
-                        <>
-                            <IconFileDescription size={16}/>
-                            <Box ml={5}>Description</Box>
-                        </>
-                    }
-                />
-                <Card.Section>
-                    <Stack py="xs" style={{display: 'flex', justifyContent: 'flex-start'}} px="lg">
-                        <Text fw={500} size="sm">{selectedBeat.description}</Text>
-                    </Stack>
-                </Card.Section>
-                <Divider
-                    my="xs"
-                    labelPosition="center"
-                    label={
-                        <>
-                            <IconTags size={16}/>
-                            <Box ml={5}>Tags</Box>
-                        </>
-                    }
-                />
-                <Card.Section>
-                    <Group py="xs" style={{display: 'flex', justifyContent: 'flex-start'}} px="lg">
-                        {selectedBeat.tags.map(tag => (
-                            <Button variant="default" size="xs" radius="lg"><IconHash size="14px"/>{tag}</Button>
-                        ))}
-                    </Group>
-                </Card.Section>
-            </Card>
-            {selectedBeat && audio &&
-                <Container w="70%" pr={0}>
+                                </Stack>
+                            </Card.Section>
+                            <Divider
+                                my="xs"
+                                labelPosition="center"
+                                label={
+                                    <>
+                                        <IconInfoSquareRounded size={16}/>
+                                        <Box ml={5}>Information</Box>
+                                    </>
+                                }
+                            />
+                            <Card.Section py="xs" style={{display: 'flex'}}>
+                                <Stack py="xs" style={{display: 'flex', width: '100%'}} px="lg">
+                                    <Group justify="space-between">
+                                        <Text c="dimmed">Key</Text>
+                                        <Text fw={500}>{selectedBeat.keys.key}</Text>
+                                    </Group>
+                                    <Group justify="space-between" w="100%">
+                                        <Text c="dimmed">Bpm</Text>
+                                        <Text fw={500}>{selectedBeat.bpm}</Text>
+                                    </Group>
+                                    <Group justify="space-between" w="100%">
+                                        <Text c="dimmed">Plays</Text>
+                                        <Text fw={500}>{selectedBeat._count.plays}</Text>
+                                    </Group>
+                                </Stack>
+                            </Card.Section>
+                            <Divider
+                                my="xs"
+                                labelPosition="center"
+                                label={
+                                    <>
+                                        <IconFileDescription size={16}/>
+                                        <Box ml={5}>Description</Box>
+                                    </>
+                                }
+                            />
+                            <Card.Section>
+                                <Stack py="xs" style={{display: 'flex', justifyContent: 'flex-start'}} px="lg">
+                                    <Text fw={500} size="sm">{selectedBeat.description}</Text>
+                                </Stack>
+                            </Card.Section>
+                            <Divider
+                                my="xs"
+                                labelPosition="center"
+                                label={
+                                    <>
+                                        <IconTags size={16}/>
+                                        <Box ml={5}>Tags</Box>
+                                    </>
+                                }
+                            />
+                            <Card.Section>
+                                <Group py="xs" style={{display: 'flex', justifyContent: 'flex-start'}} px="lg">
+                                    {selectedBeat.tags.map(tag => (
+                                        <Button variant="default" size="xs" radius="lg"><IconHash size="14px"/>{tag}</Button>
+                                    ))}
+                                </Group>
+                            </Card.Section>
+                        </Card>
+                    </Box>
+                {selectedBeat && audio &&
+                <Container w="70%" mb="20px" pr={0}>
                     <Card w="100%" radius="xl" h="75px" withBorder
                           style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}} pt="15px"
                           pb="15px">
@@ -545,6 +625,13 @@ const SelectedBeatPage = observer(() => {
                             <Group justify="space-between">
                                 <Text fw={900}>Licensing</Text>
                                 <Group h="100%">
+                                    {selectedBeat.is_free && (
+                                        <Button size="xs"
+                                                leftSection={<IconDownload/>}
+                                                onClick={() => downloadFile(selectedBeat?.beat_files.mp3_file, 'mp3')}>
+                                            Free Download
+                                        </Button>
+                                    )}
                                     <Stack style={{display: 'inline-block'}}>
                                         <Text size="sm">Total price</Text>
                                         <Text fw={800}
@@ -602,13 +689,20 @@ const SelectedBeatPage = observer(() => {
                         </Group>
                     </Card>
 
+                    <Card radius="xl" withBorder mt="20px">
+                        <Group justify="space-between">
+                            <Group>
+                                <Text>Set rating for the beat: </Text>
+                                <Rating value={rating} onChange={setRating} color="indigo"/>
+                            </Group>
+                            <Button variant="light" radius="lg" color="indigo" onClick={sendRating}>Rate</Button>
+                        </Group>
+
+                    </Card>
                     <Card w="100%" radius="xl" withBorder mt="20px">
                         <Group justify="space-between">
                             <Text fw={900}>Comments</Text>
-                            <Group>
-                                <Text>Rating: </Text>
-                                <Rating value={rating} onChange={setRating} color="indigo"/>
-                            </Group>
+
                         </Group>
                         <Divider
                             my="sm"
@@ -620,20 +714,27 @@ const SelectedBeatPage = observer(() => {
                             <TextInput
                                 variant="unstyled"
                                 placeholder="Write a comment..."
+                                value={comment}
                                 style={{borderBottom: '1px solid #909296', flexGrow: 1}}
                                 onChange={(e) => setComment(e.target.value)}
                             />
                             <Button variant="default" style={{border: 0}} radius="xl" pr="md" pl="md"
-                                    size="lg" onClick={sendComment} disabled={!comment.length}><IconSend size="22px"/></Button>
+                                    size="lg" onClick={sendComment} disabled={!comment.length}><IconSend
+                                size="22px"/></Button>
                         </Group>
                         {comments.map((comment, index) => (
                             <CommentComponent comment={comment} key={index}/>
                         ))}
                     </Card>
-
-
                 </Container>
+
             }
+            </>) : (
+                <Container size="xl" style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', width: '100%'}}>
+                    <Title>This beat is unavailable</Title>
+                </Container>
+            )}
+
         </Container>
     );
 });

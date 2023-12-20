@@ -36,7 +36,10 @@ root.render(
             beats: new BeatStore(),
             orders: new OrdersStore()
         }}>
-            <MantineProvider defaultColorScheme="dark">
+            <MantineProvider defaultColorScheme="dark"
+            theme={{
+                fontFamily: 'Inter, sans-serif'
+            }}>
                 <Notifications/>
 
                 <DevSupport ComponentPreviews={ComponentPreviews}

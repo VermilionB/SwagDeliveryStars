@@ -11,7 +11,7 @@ const StepsBeatCreating: React.FC<StepWrapperProps> = ({ activeStep, setActive, 
 
     return (
         <>
-            <Stepper active={activeStep} onStepClick={setActive}>
+            <Stepper active={activeStep} onStepClick={setActive} allowNextStepsSelect={false}>
                 <Stepper.Step label="First step" description="Upload cover for your beat and audio files" >
                     {children}
                 </Stepper.Step>

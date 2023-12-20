@@ -116,8 +116,7 @@ const SmallBeatCardComponent: FC<SmallBeatCardComponentProps> = ({beat}) => {
 
     const handleDelete = async () => {
         try {
-            await deleteBeat(beat.id); // Предположим, что у вас есть функция удаления бита
-            // Возможно, вы захотите обновить состояние списка битов или предпринять другие действия после удаления
+            await deleteBeat(beat.id);
             closeConfirmation();
             window.location.reload();
         } catch (err: any) {

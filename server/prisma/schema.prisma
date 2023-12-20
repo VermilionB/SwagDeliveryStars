@@ -144,14 +144,14 @@ model comments {
   beat_id String? @db.Uuid
   user_id String? @db.Uuid
   comment String?
-  beats   beats?  @relation(fields: [beat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  beats   beats?  @relation(fields: [beat_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users   users?  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model likes {
   user_id String @db.Uuid
   beat_id String @db.Uuid
-  beats   beats  @relation(fields: [beat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  beats   beats  @relation(fields: [beat_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   users   users  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([user_id, beat_id])

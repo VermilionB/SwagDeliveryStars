@@ -1,6 +1,7 @@
 import {
-    ADMIN_ROUTE, ALL_BEATS_ROUTE, CREATE_MEDIA_ROUTE,
-    LOGIN_ROUTE, MAIN_ROUTE, MY_MEDIA_ROUTE,
+    ABOUT_ROUTE,
+    ADMIN_ROUTE, ALL_BEATS_ROUTE, ALL_USERS_ROUTE, CREATE_MEDIA_ROUTE, EDIT_PROFILE_ROUTE,
+    LOGIN_ROUTE, MAIN_ROUTE, MY_MEDIA_ROUTE, MY_STATS_ROUTE,
     ORDERS_ROUTE,
     REGISTRATION_ROUTE, SALES_ROUTE,
     USER_ROUTE
@@ -15,6 +16,10 @@ import SelectedBeatPage from "../pages/beatsPages/SelectedBeatPage";
 import SalesPage from "../pages/SalesPage";
 import OrdersPage from "../pages/OrdersPage";
 import MyMediaPage from "../pages/beatsPages/MyMediaPage";
+import EditProfilePage from "../pages/usersPages/EditProfilePage";
+import MyStatsPage from "../pages/usersPages/MyStatsPage";
+import AboutPage from "../pages/AboutPage";
+import AllUsersPage from "../pages/usersPages/AllUsersPage";
 
 
 export const publicRoutes = [
@@ -25,6 +30,10 @@ export const publicRoutes = [
     {
         path: ALL_BEATS_ROUTE,
         Component: AllBeatsPage
+    },
+    {
+        path: ALL_USERS_ROUTE,
+        Component: AllUsersPage
     },
     {
         path: LOGIN_ROUTE,
@@ -43,6 +52,10 @@ export const publicRoutes = [
         path: USER_ROUTE + '/:userId',
         Component: UserPage
     },
+    {
+        path: ABOUT_ROUTE,
+        Component: AboutPage
+    }
 ]
 
 export const authRoutes = [
@@ -62,12 +75,12 @@ export const authRoutes = [
         path: MY_MEDIA_ROUTE,
         Component: MyMediaPage
     },
-    // {
-    //     path: USER_ROUTE,
-    //     Component: UserPage
-    // },
-    // {
-    //     path: CHAT_ROUTE,
-    //     Component: Chat
-    // }
+    {
+        path: EDIT_PROFILE_ROUTE + '/:userId',
+        Component: EditProfilePage
+    },
+    {
+        path: MY_STATS_ROUTE,
+        Component: MyStatsPage
+    }
 ]

@@ -11,9 +11,6 @@ import youngThug from '../images/youngthug.jpg'
 import Autoplay from 'embla-carousel-autoplay';
 
 import {useRef} from "react";
-interface CardProps {
-    image: string;
-}
 
 const data = [
     {image:savage},

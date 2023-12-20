@@ -6,6 +6,7 @@ import {JwtService} from "@nestjs/jwt";
 import * as jwt from 'jsonwebtoken';
 import {config} from "rxjs";
 import {ConfigService} from "@nestjs/config";
+import {CreateUserDto} from "../users/dto/create-user.dto";
 
 
 @Injectable()
@@ -15,12 +16,12 @@ export class AuthService {
                 private configService: ConfigService) {
     }
 
-    async login(userDto: UpdateUserDto) {
+    async login(userDto: CreateUserDto) {
         const user = await this.validateUser(userDto)
         return this.generateToken(user)
     }
 
-    async registration(userDto: UpdateUserDto, file?: Express.Multer.File) {
+    async registration(userDto: CreateUserDto, file?: Express.Multer.File) {
         const candidate = await this.userService.getUserByEmail(userDto.email);
         if (candidate) {
             throw new HttpException('User with such email already exists', HttpStatus.BAD_REQUEST);
@@ -36,7 +37,7 @@ export class AuthService {
         }
     }
 
-    private async validateUser(userDto: UpdateUserDto) {
+    private async validateUser(userDto: CreateUserDto) {
         const user = await this.userService.getUserByEmail(userDto.email);
         if (user) {
             const passwordEquals = await argon2.verify(user.password, userDto.password)
@@ -46,7 +47,7 @@ export class AuthService {
                 throw new UnauthorizedException({message: 'Incorrect password confirmation'})
             }
         }
-        throw new UnauthorizedException({message: 'Incorrect password entered'})
+        throw new UnauthorizedException({message: 'User with such email was not found'})
     }
 
     async check(req) {
@@ -56,12 +57,8 @@ export class AuthService {
 
         try {
             const token = req.headers.authorization?.split(' ')[1];
-            // if (token === 'null') {
-            //     throw new UnauthorizedException()
-            // }
-
             req.user = this.jwtService.verify(token)
-            const payload = {email: req.user.email, id: req.user.id, role: req.user.role_id}
+            const payload = {email: req.user.email, id: req.user.id, role: req.user.role}
             return {
                 token: this.jwtService.sign(payload)
             }

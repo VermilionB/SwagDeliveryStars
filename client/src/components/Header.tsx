@@ -1,14 +1,14 @@
-import React, {useState, useEffect, useRef, useContext} from 'react';
-import {Avatar, Button, Container, Group, Image, Text} from '@mantine/core';
+import React, {useState, useEffect, useContext} from 'react';
+import {Button, Container, Group, Image} from '@mantine/core';
 import LinkComponent from './router/LinkComponent';
 import {
-    ALL_BEATS_ROUTE,
+    ABOUT_ROUTE,
+    ALL_BEATS_ROUTE, ALL_USERS_ROUTE,
     CREATE_MEDIA_ROUTE,
     LOGIN_ROUTE,
     MAIN_ROUTE,
     ORDERS_ROUTE,
     SALES_ROUTE,
-    USER_ROUTE
 } from '../routes/consts';
 import ThemeSwitcher from './theme/ThemeSwitcher';
 import {observer} from 'mobx-react-lite';
@@ -29,14 +29,12 @@ const Header: React.FC = observer(() => {
     const [avatar, setAvatar] = useState('')
 
     const handleLinkClick = (link: React.SetStateAction<string>) => {
-        console.log(link)
         setActiveLink(link);
     };
 
     useEffect(() => {
         try {
             const storedToken = localStorage.getItem('token');
-            console.log(storedToken)
             if (storedToken) {
                 setUserToken(jwtDecode(storedToken));
             } else {
@@ -50,7 +48,7 @@ const Header: React.FC = observer(() => {
     useEffect(() => {
         try {
             const storedToken = localStorage.getItem('token');
-            console.log(storedToken)
+
             if (storedToken) {
                 setUserToken(jwtDecode(storedToken));
             } else {
@@ -66,7 +64,6 @@ const Header: React.FC = observer(() => {
             try {
                 if (userToken.id) {
                     const data = await getUserById(userToken.id);
-                    console.log(data)
                     setCurrentUser(data);
                 }
             } catch (error) {
@@ -165,43 +162,11 @@ const Header: React.FC = observer(() => {
                                 textDecoration: 'none',
                             }}
                         >
-                            All Beats
+                            Beats
                         </LinkComponent>
-                        {user.isAuth &&
-                            (
-                                <><LinkComponent
-                                    to={ORDERS_ROUTE}
-                                    onClick={() => handleLinkClick(ORDERS_ROUTE)}
-                                    className="custom-link"
-                                    activeClassName="active"
-                                    size="lg"
-                                    underline="never"
-                                    style={{
-                                        color: 'teal',
-                                        textDecoration: 'none',
-                                    }}
-                                >
-                                    My Orders
-                                </LinkComponent>
-
-                                    <LinkComponent
-                                        to={SALES_ROUTE}
-                                        onClick={() => handleLinkClick(SALES_ROUTE)}
-                                        className="custom-link"
-                                        activeClassName="active"
-                                        size="lg"
-                                        underline="never"
-                                        style={{
-                                            color: 'teal',
-                                            textDecoration: 'none',
-                                        }}
-                                    >
-                                        My Sales
-                                    </LinkComponent>
-                                </>)
-                        }
                         <LinkComponent
-                            to={MAIN_ROUTE}
+                            to={ALL_USERS_ROUTE}
+                            onClick={() => handleLinkClick(ALL_USERS_ROUTE)}
                             className="custom-link"
                             activeClassName="active"
                             size="lg"
@@ -211,7 +176,21 @@ const Header: React.FC = observer(() => {
                                 textDecoration: 'none',
                             }}
                         >
-                            Settings
+                            Producers
+                        </LinkComponent>
+                        <LinkComponent
+                            to={ABOUT_ROUTE}
+                            onClick={() => handleLinkClick(ABOUT_ROUTE)}
+                            className="custom-link"
+                            activeClassName="active"
+                            size="lg"
+                            underline="never"
+                            style={{
+                                color: 'teal',
+                                textDecoration: 'none',
+                            }}
+                        >
+                            About Us
                         </LinkComponent>
                     </Group>
                     {user.isAuth ? (
@@ -222,7 +201,7 @@ const Header: React.FC = observer(() => {
                                            size="lg"
                                            underline="never"
                                            style={{color: 'indigo', textDecoration: 'none'}}>
-                                <Button variant="filled">
+                                <Button variant="filled" disabled={currentUser?.user.is_banned}>
                                     Create Media
                                 </Button>
                             </LinkComponent>

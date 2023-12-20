@@ -13,7 +13,7 @@ import {
     TextInput
 } from "@mantine/core";
 import {IconAt, IconExclamationCircle, IconLock, IconUser} from '@tabler/icons-react';
-import {LOGIN_ROUTE, MAIN_ROUTE} from "../routes/consts";
+import {ALL_BEATS_ROUTE, LOGIN_ROUTE, MAIN_ROUTE} from "../routes/consts";
 import LinkComponent from "../components/router/LinkComponent";
 import {registration} from "../http/usersAPI";
 import {observer} from "mobx-react-lite";
@@ -75,7 +75,6 @@ const RegistrationPage = observer(() => {
         };
 
         const formData = new FormData();
-        console.log(process.env.REACT_APP_API_URL)
 
         try {
             if(file) {
@@ -91,10 +90,11 @@ const RegistrationPage = observer(() => {
             if(data){
                 user.setUser(data);
                 user.setIsAuth(true);
-                navigate(MAIN_ROUTE);
+                navigate(ALL_BEATS_ROUTE);
             }
 
         }catch (err: any) {
+            console.log(err.response.data.message)
             notifications.show({
                 title: 'Error',
                 message: `Failed to register: ${err.response.data.message}`,

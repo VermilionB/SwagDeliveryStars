@@ -13,6 +13,19 @@ export class BeatsService {
     }
 
     async create(dto: CreateBeatDto, producerId: string, files) {
+        const producerBanned = await this.prisma.users.findFirst({
+            where: {
+                id: producerId
+            },
+            select: {
+                is_banned: true
+            }
+        })
+
+        if (producerBanned.is_banned) {
+            throw new NotFoundException("User is banned and cannot post beats");
+        }
+
         if (files) {
             const mp3FilePromise = this.uploadFiles.uploadFile(files.mp3_file[0]);
             const wavFilePromise = this.uploadFiles.uploadFile(files.wav_file[0]);
@@ -27,8 +40,6 @@ export class BeatsService {
                 imageUrlPromise,
                 durationMp3Promise
             ]);
-
-            console.log(mp3_file, wav_file, zip_file, imageUrl);
 
             const beatFilesId = uuidv7();
 
@@ -81,13 +92,51 @@ export class BeatsService {
     }
 
 
-    async getAllBeats(page: number, pageSize: number) {
-        console.log(page, pageSize)
+    async getAllBeats(
+        page: number,
+        pageSize: number,
+        beatName: string = '',
+        priceFrom: number = 0,
+        priceTo: number = Number.MAX_SAFE_INTEGER,
+        isFree: boolean | null = null
+    ) {
         const skip: number = (page - 1) * pageSize;
+
+        const whereCondition: {
+            name?: { contains: string; mode: 'insensitive' };
+            licenses?: { some: { price: { gte: number; lte: number } } };
+            is_free?: boolean | null;
+            is_available: boolean;
+        } = {
+            is_available: true,
+        };
+
+        if (beatName) {
+            whereCondition.name = { contains: beatName, mode: 'insensitive' };
+        }
+
+        if (!priceFrom) {
+            priceFrom = 0;
+        }
+
+        // Если priceTo не указан, установите его в максимальное значение
+        if (!priceTo) {
+            priceTo = Number.MAX_SAFE_INTEGER;
+        }
+
+        if (priceFrom > 0 || priceTo > 0) {
+            whereCondition.licenses = {
+                some: { price: { gte: priceFrom, lte: priceTo } },
+            };
+        }
+
+
+        if (isFree !== null) {
+            whereCondition.is_free = isFree;
+        }
+
         return this.prisma.beats.findMany({
-            where: {
-                is_available: true
-            },
+            where: whereCondition,
             skip: skip,
             take: pageSize,
             select: {
@@ -95,21 +144,21 @@ export class BeatsService {
                 name: true,
                 users: {
                     select: {
-                        username: true
-                    }
+                        username: true,
+                    },
                 },
                 image_url: true,
                 duration: true,
                 bpm: true,
                 keys: {
                     select: {
-                        key: true
-                    }
+                        key: true,
+                    },
                 },
                 genres: {
                     select: {
-                        genre: true
-                    }
+                        genre: true,
+                    },
                 },
                 likes: true,
                 is_free: true,
@@ -117,12 +166,13 @@ export class BeatsService {
                 licenses: {
                     select: {
                         license_type: true,
-                        price: true
-                    }
-                }
-            }
-        })
+                        price: true,
+                    },
+                },
+            },
+        });
     }
+
 
     async getBeatById(id: string) {
         return this.prisma.beats.findUnique({
@@ -177,26 +227,16 @@ export class BeatsService {
                     select: {
                         users: {
                             select: {
+                                id: true,
                                 username: true,
-                                avatar_url: true
+                                avatar_url: true,
+                                role_id: true
                             }
                         },
+                        beat_id: true,
                         comment: true
                     }
                 },
-                // ratings_reviews: {
-                //     select: {
-                //         rating: true,
-                //         comment: true,
-                //         users: {
-                //             select: {
-                //                 username: true,
-                //                 avatar_url: true,
-                //                 is_banned: true
-                //             }
-                //         }
-                //     }
-                // },
                 beat_files: {
                     select: {
                         mp3_file: true
@@ -227,11 +267,36 @@ export class BeatsService {
         });
     }
 
-    async getAllBeatsCount() {
+    async getAllBeatsCount(beatName: string = '',
+                           priceFrom: number = 0,
+                           priceTo: number = Number.MAX_SAFE_INTEGER,
+                           isFree: boolean | null = null) {
+
+        const whereCondition: {
+            name?: { contains: string; mode: 'insensitive' };
+            licenses?: { some: { price: { gte: number; lte: number } } };
+            is_free?: boolean | null;
+            is_available: boolean;
+        } = {
+            is_available: true,
+        };
+
+        if (beatName) {
+            whereCondition.name = { contains: beatName, mode: 'insensitive' };
+        }
+
+        if (priceFrom > 0 || priceTo > 0) {
+            whereCondition.licenses = {
+                some: { price: { gte: priceFrom, lte: priceTo } },
+            };
+        }
+
+        if (isFree !== null) {
+            whereCondition.is_free = isFree;
+        }
+
         return this.prisma.beats.count({
-            where: {
-                is_available: true
-            }
+            where: whereCondition
         })
     }
 
@@ -379,9 +444,7 @@ export class BeatsService {
 
                 await Promise.all(
                     licenseTypes.map(async (licenseType, i) => {
-                        console.log(licenseType)
                         const licensePrice: number = parseFloat(licensePrices[i] as string);
-                        console.log(licensePrice)
                         await this.prisma.licenses.updateMany({
                             where: {
                                 AND: [
@@ -407,15 +470,6 @@ export class BeatsService {
 
     async deleteBeat(beatId: string, userId: string) {
         try {
-            const foundProducer = await this.prisma.beats.findFirst({
-                where: {
-                    producer_id: userId,
-                },
-                select: {
-                    producer_id: true,
-                },
-            });
-
             const isAdmin = await this.prisma.users.findUnique({
                 where: {
                     id: userId
@@ -429,7 +483,16 @@ export class BeatsService {
                 }
             })
 
-            if (userId === foundProducer.producer_id || isAdmin.roles.role_name === 'admin') {
+            const foundProducer = await this.prisma.beats.findFirst({
+                where: {
+                    producer_id: userId,
+                },
+                select: {
+                    producer_id: true,
+                },
+            });
+
+            if (isAdmin.roles.role_name === 'admin' || (isAdmin.roles.role_name === 'admin' && !foundProducer) || userId === foundProducer.producer_id) {
                 const foundBeat = await this.prisma.beats.findFirst({
                     where: {
                         id: beatId

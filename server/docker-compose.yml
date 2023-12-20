@@ -1,0 +1,15 @@
+name: swagdeliverystars
+services:
+  backend:
+    build: .
+    container_name: swagdeliverystars-backend
+    networks:
+      - server-side
+      - client-side
+    ports:
+      - 5000:5000
+
+networks:
+  client-side: {}
+  server-side: {}
+

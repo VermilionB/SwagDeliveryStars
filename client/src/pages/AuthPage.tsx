@@ -13,7 +13,7 @@ const AuthPage = observer(() => {
 
     return (
         <div style={{width: '100%', paddingTop: "135px"}}>
-            <Container size="xs">
+            <Container size="xs" mb={20}>
                 <Card shadow="sm" radius="lg" withBorder>
                     <Group justify="center" mb="20px">
                         <Title order={2}>{isLogin ? 'Sign In' : "Sign Up"}</Title>

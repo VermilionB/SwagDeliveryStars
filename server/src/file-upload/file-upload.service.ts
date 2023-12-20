@@ -12,12 +12,16 @@ import {AvatarGeneratorService} from "../avatar_generator/avatar_generator.servi
 import {v4 as uuidv7} from 'uuid';
 import * as sharp from 'sharp';
 import * as mm from 'music-metadata'
-import { createReadStream } from 'fs';
-import { join } from 'path';
 
 const s3Client = new S3Client({
     region: "msk",
-    endpoint: "https://s3.aeza.cloud",
+    credentials: {
+        accessKeyId: 'af82df6a-326a-4547-9f35-90162efa01f2',
+        secretAccessKey: 'fb19fb6f6284f274df405343fd1b58e74e4f36238c1fea4e06cd6918c0fdcbe5'
+    },
+    endpoint: 'https://s3.aeza.cloud',
+    forcePathStyle: true,
+    apiVersion: 'latest',
 });
 
 @Injectable()
@@ -52,10 +56,8 @@ export class FileUploadService {
         if(file) {
             const mimeType = file.mimetype;
             body = isImageMimeType(mimeType) ? await this.getFileBuffer(file, email) : file.buffer;
-            console.log(file)
         }
         else body = await this.getFileBuffer(file, email)
-// Пример использования
 
         return {
             Bucket: this.bucketName,
@@ -68,7 +70,6 @@ export class FileUploadService {
     async uploadFile(file: Express.Multer.File, email?: string): Promise<string> {
         const uploadParams = await this.generateUploadParams(file, email);
         await s3Client.send(new PutObjectCommand(uploadParams));
-        console.log(uploadParams.Key)
         return uploadParams.Key
     }
 
@@ -94,7 +95,6 @@ export class FileUploadService {
     }
 
     async generatePresignedUrl(avatarKey: string): Promise<string> {
-        // console.log(avatarKey)
         const command = new GetObjectCommand({
             Bucket: this.bucketName,
             Key: avatarKey,
@@ -108,7 +108,6 @@ export class FileUploadService {
         try {
             const metadata = await mm.parseBuffer(file.buffer, 'audio/mpeg');
             const durationInSeconds = Math.round(metadata.format.duration);
-            console.log(`Длительность аудиофайла: ${durationInSeconds} секунд`);
             return durationInSeconds;
         } catch (error) {
             console.error('Ошибка при анализе метаданных аудиофайла:', error.message);

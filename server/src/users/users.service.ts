@@ -12,9 +12,74 @@ export class UsersService {
     constructor(private prisma: PrismaService, private readonly uploadImage: FileUploadService) {
     }
 
-    async getAll() {
-        return this.prisma.users.findMany();
+    async getAll(username: string = '', userId: string | null) {
+
+        if (userId === 'null') {
+            return this.prisma.users.findMany({
+                where: {
+                    is_banned: false,
+                    username: {
+                        contains: username,
+                        mode: 'insensitive'
+                    }
+                },
+                select: {
+                    id: true,
+                    email: true,
+                    avatar_url: true,
+                    username: true,
+                    is_banned: true
+                }
+            });
+        }
+
+        const requestingUser = await this.prisma.users.findFirst({
+            where: {
+                id: userId
+            },
+            select: {
+                role_id: true
+            }
+        });
+
+        if (requestingUser.role_id === 2) {
+            return this.prisma.users.findMany({
+                where: {
+                    username: {
+                        contains: username,
+                        mode: 'insensitive'
+                    }
+                },
+                select: {
+                    id: true,
+                    email: true,
+                    avatar_url: true,
+                    username: true,
+                    is_banned: true
+                }
+            });
+        } else {
+            return this.prisma.users.findMany({
+                where: {
+                    is_banned: false,
+                    role_id: 1,
+                    username: {
+                        contains: username,
+                        mode: 'insensitive'
+                    }
+                },
+                select: {
+                    id: true,
+                    email: true,
+                    avatar_url: true,
+                    username: true,
+                    is_banned: true
+                }
+            });
+        }
     }
+
+
 
     async create(dto: CreateUserDto, file?: Express.Multer.File) {
         let avatarUrl: string;
@@ -56,13 +121,11 @@ export class UsersService {
     }
 
     async updateUser(id: string, updatedData: UpdateUserDto, file?: Express.Multer.File) {
-        let hashedPassword: string
         let newAvatarUrl: string
         const existingUser = await this.prisma.users.findUnique({
             where: {id}
         })
         if (existingUser) {
-            console.log(existingUser)
             await this.prisma.social_links.update({
                 where: {
                     id: existingUser.social_links_id
@@ -77,9 +140,7 @@ export class UsersService {
                     twitch: updatedData.twitch
                 }
             })
-            if (updatedData.password) {
-                hashedPassword = await argon2.hash(updatedData.password);
-            }
+
             if (file) {
                 newAvatarUrl = await this.uploadImage.updateFile(file, existingUser.avatar_url);
             }
@@ -88,7 +149,6 @@ export class UsersService {
                 where: {id},
                 data: {
                     email: updatedData.email,
-                    password: hashedPassword,
                     username: updatedData.username,
                     avatar_url: newAvatarUrl,
                     bio: updatedData.bio,
@@ -140,11 +200,11 @@ export class UsersService {
                         },
                     },
                 },
+                social_links: true
             },
         });
 
         if (!user) {
-            // Handle case where user is not found
             return null;
         }
 
@@ -207,7 +267,7 @@ export class UsersService {
     }
 
     async findFollowed(id: string, currentUserId: string) {
-        console.log(id)
+
         return this.prisma.followers.findUnique({
             where: {
                 who_follows_who_followed: {
@@ -218,5 +278,25 @@ export class UsersService {
         });
     }
 
+    async blockUser (userId: string) {
+        return this.prisma.users.update({
+            where: {
+                id: userId
+            },
+            data: {
+                is_banned: true
+            }
+        })
+    }
 
+    async unblockUser (userId: string) {
+        return this.prisma.users.update({
+            where: {
+                id: userId
+            },
+            data: {
+                is_banned: false
+            }
+        })
+    }
 }

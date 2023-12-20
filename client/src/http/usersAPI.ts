@@ -9,6 +9,7 @@ export interface UserData {
         username: string;
         avatar_url: string;
         bio: string;
+        contact_info: string
         followers_followers_who_followsTousers: [{
             who_follows: string,
             who_followed: string
@@ -18,17 +19,27 @@ export interface UserData {
             who_followed: string
         }];
         beats: [],
+        is_banned: boolean
         reposts: [
             {
                 beats: BeatsInterface
             }
-        ]
+        ],
+        social_links: {
+            id: string,
+            youtube: string;
+            soundcloud: string;
+            facebook: string;
+            twitter: string;
+            instagram: string;
+            tiktok: string;
+            twitch: string;
+        }
     },
     totalPlays: number
 }
 
 export const registration = async (formData: FormData, config: AxiosRequestConfig<any> | undefined) => {
-    console.log(formData)
     const {data} = await $host.post('http://localhost:5000/api/auth/registration', formData, config)
     localStorage.setItem('token', data.token)
     return jwtDecode(data.token);
@@ -57,7 +68,6 @@ export const fetchAvatarFile = async (id: string) => {
 }
 
 export const followProducer = async (userId: string) => {
-    console.log(userId)
     const {data} = await $authHost.post(`http://localhost:5000/api/users/follow/${userId}`)
     return data
 }
@@ -69,5 +79,25 @@ export const unfollowProducer = async (id: string) => {
 
 export const findFollowed = async (id: string) => {
     const {data} = await $authHost.get(`http://localhost:5000/api/users/findFollowed/${id}`)
+    return data
+}
+
+export const updateUserData = async (formData: FormData, config: AxiosRequestConfig<any> | undefined) => {
+    const {data} = await $authHost.put('http://localhost:5000/api/users', formData, config)
+    return data
+}
+
+export const getAllUsers = async (searchValue: string, userId: string | null = null) => {
+    const {data} = await $host.get(`http://localhost:5000/api/users?username=${searchValue}&userId=${userId}`)
+    return data
+}
+
+export const blockUser = async (userId: string) => {
+    const {data} = await $authHost.put(`http://localhost:5000/api/users/block/${userId}`)
+    return data
+}
+
+export const unblockUser = async (userId: string) => {
+    const {data} = await $authHost.put(`http://localhost:5000/api/users/unblock/${userId}`)
     return data
 }

@@ -47,15 +47,44 @@ export class BeatsController {
     }
 
     @Get('length')
-    async getAllBeatsCount() {
-        return this.beatsService.getAllBeatsCount();
+    async getAllBeatsCount(@Query('beatName') beatName: string,
+                           @Query('priceFrom') priceFrom: string,
+                           @Query('priceTo') priceTo: string,
+                           @Query('isFree') isFree: string,) {
+        const parsedPriceFrom = +priceFrom;
+        const parsedPriceTo = +priceTo;
+        const parsedIsFree = isFree === 'true' ? true : (isFree === 'false' ? false : null);
+        return this.beatsService.getAllBeatsCount(beatName,
+            parsedPriceFrom,
+            parsedPriceTo,
+            parsedIsFree);
     }
-
 
     @Get()
-    async getAllBeats(@Query('page') page: number, @Query('pageSize') pageSize: number) {
-        return this.beatsService.getAllBeats(+page, +pageSize);
+    async getAllBeats(
+        @Query('page') page: string,
+        @Query('pageSize') pageSize: string,
+        @Query('beatName') beatName: string,
+        @Query('priceFrom') priceFrom: string,
+        @Query('priceTo') priceTo: string,
+        @Query('isFree') isFree: string,
+    ) {
+        const parsedPage = +page;
+        const parsedPageSize = +pageSize;
+        const parsedPriceFrom = +priceFrom;
+        const parsedPriceTo = +priceTo;
+        const parsedIsFree = isFree === 'true' ? true : (isFree === 'false' ? false : null);
+
+        return this.beatsService.getAllBeats(
+            parsedPage,
+            parsedPageSize,
+            beatName,
+            parsedPriceFrom,
+            parsedPriceTo,
+            parsedIsFree
+        );
     }
+
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.Admin, Role.Producer)
@@ -110,7 +139,7 @@ export class BeatsController {
     async getBeatById(@Param('id') id: string) {
         return this.beatsService.getBeatById(id);
     }
-    
+
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.Admin, Role.Producer)
     @UseInterceptors(FileInterceptor('image_file'))
