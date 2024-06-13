@@ -61,8 +61,20 @@ const RegistrationPage = observer(() => {
             return;
         }
 
+        if(email.length > 40 || email.length < 5) {
+            setAlertMessage('Email length is invalid (min length is 5 and max length is 50 symbols')
+            setShowAlert(true);
+            return;
+        }
+
         if(password !== confirmedPassword) {
             setAlertMessage('Passwords don\'\t match')
+            setShowAlert(true);
+            return;
+        }
+
+        if(username.length > 40 || username.length < 5) {
+            setAlertMessage('Username length is invalid (min length is 5 and max length is 50 symbols')
             setShowAlert(true);
             return;
         }

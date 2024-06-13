@@ -1,7 +1,7 @@
 import {Text, Container, ActionIcon, Group, rem, Stack, Image} from '@mantine/core';
 import {IconBrandTwitter, IconBrandYoutube, IconBrandInstagram, IconBrandTelegram} from '@tabler/icons-react';
 import React from "react";
-import logo from '../images/sdstars.svg'
+import logo from '../images/producer-world-favicon-color.svg'
 
 const data = [
     {
@@ -67,15 +67,7 @@ const Footer = () => {
                         <Stack className="footer-description">
                             <Group>
                                 <Image src={logo} h={100}
-                                       w="auto"
                                        fit="contain"/>
-                                {/*<Text*/}
-                                {/*    size="xl"*/}
-                                {/*    fw={900}*/}
-                                {/*    style={{marginRight: 'auto'}}*/}
-                                {/*>*/}
-                                {/*    $wag Delivery Stars*/}
-                                {/*</Text>*/}
                             </Group>
                            <Text>
                                The place to change your life
@@ -89,7 +81,7 @@ const Footer = () => {
             <Container size="xl" className="afterFooter">
                 <Text c="dimmed" size="sm">
 
-                    © 2023 Swag Delivery Stars. All rights reserved.
+                    © 2024 Producer World. All rights reserved.
                 </Text>
 
                 <Group gap={0} justify="flex-end" wrap="nowrap">

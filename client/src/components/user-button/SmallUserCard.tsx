@@ -1,5 +1,5 @@
 import React, {FC, useEffect, useState} from 'react';
-import {Avatar, Button, Modal, Stack, Group, Table, Text} from "@mantine/core";
+import {Avatar, Button, Modal, Stack, Group, Table, Text, Skeleton} from "@mantine/core";
 import {UserDataProps} from "../../pages/usersPages/AllUsersPage";
 import {blockUser, fetchAvatarFile, unblockUser} from "../../http/usersAPI";
 import {jwtDecode} from "jwt-decode";
@@ -16,9 +16,9 @@ interface UserCardProps extends UserDataProps {
 }
 
 const SmallUserCard: FC<UserCardProps> = ({id, username, email, avatar_url, is_banned, userToken}) => {
-    const navigate = useNavigate()
     const [avatar, setAvatar] = useState('')
     const [confirmationOpened, {open: openConfirmation, close: closeConfirmation}] = useDisclosure(false);
+    const [imageLoading, setImageLoading] = useState(true)
 
     useEffect(() => {
         fetchAvatarFile(avatar_url).then(data => setAvatar(data))
@@ -66,44 +66,47 @@ const SmallUserCard: FC<UserCardProps> = ({id, username, email, avatar_url, is_b
                     </Group>
                 </Stack>
             </Modal>
-            <LinkComponent to={USER_ROUTE + `/${id}`} underline="never"
-                           style={{
-                               textDecoration: 'none'
-                           }}>
-                <Table.Tr>
-                    <Table.Td w="5%">
-                        <Avatar size="md" src={avatar}/>
-                    </Table.Td>
-                    <Table.Td w="20%">
-                        <Text lineClamp={1}>{email}</Text>
-                    </Table.Td>
-                    <Table.Td w="75%">
-                        <Group justify="space-between" wrap="nowrap">
-                            <Text lineClamp={1}>{username}</Text>
-                            {userToken && userToken.role === 2 && userToken.id !== id && (
-                                <>
-                                    {!is_banned ? (
-                                        <Button variant="light" style={{border: 0}} title="Block" size="md" radius="xl"
-                                                pr="md"
-                                                color="red"
-                                                pl="md" onClick={openConfirmation}>
-                                            <IconHandStop/>
-                                        </Button>
-                                    ) : (
-                                        <Button variant="light" style={{border: 0}} title="Unblock" size="md"
-                                                radius="xl" pr="md"
-                                                color="teal"
-                                                pl="md" onClick={handleUnblock}>
-                                            <IconHandOff/>
-                                        </Button>
-                                    )}
-                                </>
 
-                            )}
-                        </Group>
-                    </Table.Td>
-                </Table.Tr>
-            </LinkComponent>
+            <Table.Tr>
+                <Table.Td w="5%">
+                    <Skeleton visible={imageLoading} radius="xl">
+                        <Avatar size="md" src={avatar} onLoad={() => setImageLoading(false)}/>
+                    </Skeleton>
+                </Table.Td>
+                <Table.Td w="20%">
+                    <Text lineClamp={1}>{email}</Text>
+                </Table.Td>
+                <Table.Td w="75%" align='center'>
+                    <Group justify="space-between" wrap="nowrap">
+                        <LinkComponent to={USER_ROUTE + `/${id}`} underline="never"
+                                       style={{
+                                           textDecoration: 'none'
+                                       }}>
+                            <Text lineClamp={1}>{username}</Text>
+                        </LinkComponent>
+                        {userToken && userToken.role === 2 && userToken.id !== id && (
+                            <>
+                                {!is_banned ? (
+                                    <Button variant="light" style={{border: 0}} title="Block" size="md" radius="xl"
+                                            pr="md"
+                                            color="red"
+                                            pl="md" onClick={openConfirmation}>
+                                        <IconHandStop/>
+                                    </Button>
+                                ) : (
+                                    <Button variant="light" style={{border: 0}} title="Unblock" size="md"
+                                            radius="xl" pr="md"
+                                            color="teal"
+                                            pl="md" onClick={handleUnblock}>
+                                        <IconHandOff/>
+                                    </Button>
+                                )}
+                            </>
+
+                        )}
+                    </Group>
+                </Table.Td>
+            </Table.Tr>
         </>
 
     );

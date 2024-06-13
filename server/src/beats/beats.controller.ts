@@ -27,12 +27,7 @@ export class BeatsController {
 
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Roles(Role.Admin, Role.Producer)
-    @UseInterceptors(FileFieldsInterceptor([
-            {name: 'mp3_file', maxCount: 1},
-            {name: 'wav_file', maxCount: 1},
-            {name: 'zip_file', maxCount: 1},
-            {name: 'image_file', maxCount: 1}
-        ]),
+    @UseInterceptors(FileFieldsInterceptor([{name: 'mp3_file', maxCount: 1}, {name: 'wav_file', maxCount: 1}, {name: 'zip_file', maxCount: 1}, {name: 'image_file', maxCount: 1}]),
         FileSizeInterceptor)
     @Post()
     async createBeat(@Body() dto: CreateBeatDto,

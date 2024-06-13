@@ -35,6 +35,7 @@
     "react-router-dom": "^6.19.0",
     "react-scripts": "5.0.1",
     "react-wavesurfer": "^0.8.6",
+    "stripe": "^15.5.0",
     "typescript": "^4.9.5",
     "wavesurfer.js": "^7.4.11",
     "web-vitals": "^2.1.4"

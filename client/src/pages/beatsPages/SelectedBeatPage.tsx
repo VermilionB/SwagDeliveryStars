@@ -616,11 +616,11 @@ const SelectedBeatPage = observer(() => {
                     <Card w="100%" radius="xl" h="75px" withBorder
                           style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}} pt="15px"
                           pb="15px">
-                        <Waveform audio={audio} beat={selectedBeat.id}/>
+                        <Waveform audio={audio} beat={selectedBeat.id} user={currentUser}/>
                     </Card>
 
                     <Card w="100%" radius="xl" withBorder mt="20px">
-                        {!(currentUser?.user.id === selectedBeat.users.id) &&
+                        {!(currentUser?.user.id === selectedBeat.users.id) && currentUser &&
 
                             <Group justify="space-between">
                                 <Text fw={900}>Licensing</Text>

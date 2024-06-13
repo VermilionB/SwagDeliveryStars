@@ -126,7 +126,7 @@ const Header: React.FC = observer(() => {
                     h="75px"
                 >
                     <Image src={logo} h={100}
-                           w="auto"
+                           w="170px"
                            fit="contain"/>
 
                     <Group style={{

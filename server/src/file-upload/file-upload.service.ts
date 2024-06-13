@@ -1,4 +1,4 @@
-import {Injectable, StreamableFile} from '@nestjs/common';
+import {Injectable} from '@nestjs/common';
 import {
     DeleteObjectCommand,
     GetObjectCommand,
@@ -16,20 +16,32 @@ import * as mm from 'music-metadata'
 const s3Client = new S3Client({
     region: "msk",
     credentials: {
-        accessKeyId: 'af82df6a-326a-4547-9f35-90162efa01f2',
-        secretAccessKey: 'fb19fb6f6284f274df405343fd1b58e74e4f36238c1fea4e06cd6918c0fdcbe5'
+        accessKeyId: 'cad483a6-acd1-4498-9975-86d7f2518701',
+        secretAccessKey: '67d38449c21495d6239791cb0d40610504b3cbf468c446caae3e2d5719e2088f'
     },
     endpoint: 'https://s3.aeza.cloud',
     forcePathStyle: true,
     apiVersion: 'latest',
 });
 
+// const s3Client = new S3Client({
+//     region: "ru-1", // Замените на ваш регион
+//     credentials: {
+//         accessKeyId: 'a4e01a924987414fb84a35e9a1e46d76', // Замените на ваш Access Key ID
+//         secretAccessKey: '91c6ff2f3fdb4b42ade3a1c39367848d' // Замените на ваш Secret Access Key
+//     },
+//     endpoint: 'https://s3.ru-1.storage.selcloud.ru/', // Замените на ваш endpoint, если необходимо
+//     forcePathStyle: true,
+//     apiVersion: 'latest',
+// });
+
+
 @Injectable()
 export class FileUploadService {
     private readonly bucketName: string
 
     constructor(private readonly avatarGenerator: AvatarGeneratorService) {
-        this.bucketName = "deserted-minister"
+        this.bucketName = "tenuous-army"
     }
 
     async getFileBuffer(file: Express.Multer.File, email?: string): Promise<Buffer> {
@@ -107,8 +119,7 @@ export class FileUploadService {
     async getAudioDuration(file: Express.Multer.File) {
         try {
             const metadata = await mm.parseBuffer(file.buffer, 'audio/mpeg');
-            const durationInSeconds = Math.round(metadata.format.duration);
-            return durationInSeconds;
+            return Math.round(metadata.format.duration);
         } catch (error) {
             console.error('Ошибка при анализе метаданных аудиофайла:', error.message);
             return null;

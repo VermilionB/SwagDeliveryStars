@@ -1,35 +1,33 @@
 import {$authHost, $host} from "./index";
 import { AxiosRequestConfig } from "axios";
-import {login} from "./usersAPI";
 
 export const createBeat = async (formData: FormData, config: AxiosRequestConfig<any> | undefined) => {
-    const {data} = await $authHost.post('http://localhost:5000/api/beats/', formData, config)
+    const {data} = await $authHost.post(`api/beats/`, formData, config)
     return data;
 }
 
 export const updateBeat = async (formData: FormData, config: AxiosRequestConfig<any> | undefined) => {
-    const {data} = await $authHost.put('http://localhost:5000/api/beats/', formData, config)
+    const {data} = await $authHost.put(`api/beats/`, formData, config)
     return data;
 }
 
 export const deleteBeat = async (beatId: string) => {
-    const {data} = await $authHost.delete(`http://localhost:5000/api/beats/${beatId}`)
+    const {data} = await $authHost.delete(`api/beats/${beatId}`)
     return data;
 }
 
 export const getAllBeats = async (
     currentPage: number,
     pageSize: number,
-    searchValue: string = '',
+    searchValue: string = ``,
     priceFrom: number = 0,
     priceTo: number = 0,
-    isFree: string = ''
+    isFree: string = ``
 ) => {
-    const formattedPriceFrom = priceFrom.toFixed(2); // Convert to string with 2 decimal places
-    const formattedPriceTo = priceTo.toFixed(2); // Convert to string with 2 decimal places
+    const formattedPriceFrom = priceFrom.toFixed(2);
+    const formattedPriceTo = priceTo.toFixed(2);
 
-    // Постройте URL, учитывая только переданные значения
-    let url = `http://localhost:5000/api/beats?page=${currentPage}&pageSize=${pageSize}&beatName=${searchValue}`;
+    let url = `api/beats?page=${currentPage}&pageSize=${pageSize}&beatName=${searchValue}`;
     if (formattedPriceFrom) {
         url += `&priceFrom=${formattedPriceFrom}`;
     }
@@ -47,50 +45,50 @@ export const getAllBeats = async (
 
 
 export const getBeatById = async (id: string) => {
-    const {data} = await $host.get(`http://localhost:5000/api/beats/${id}`)
+    const {data} = await $host.get(`api/beats/${id}`)
     return data
 }
 
 export const playBeat = async (beatId: string) => {
-    const {data} = await $authHost.post(`http://localhost:5000/api/beats/play/${beatId}`)
+    const {data} = await $authHost.post(`api/beats/play/${beatId}`)
     return data
 }
 export const getPlaysByBeat = async (beatId: string) => {
-    const {data} = await $host.get(`http://localhost:5000/api/beats/plays?beatId=${beatId}`)
+    const {data} = await $host.get(`api/beats/plays?beatId=${beatId}`)
     return data
 }
 
-export const allBeatsCount = async (searchValue: string = '', priceFrom: number = 0, priceTo: number = 0, isFree: string = '') => {
-    const {data} = await $host.get(`http://localhost:5000/api/beats/length?beatName=${searchValue}&priceFrom=${priceFrom}&priceTo=${priceTo}&isFree=${isFree}`)
+export const allBeatsCount = async (searchValue: string = ``, priceFrom: number = 0, priceTo: number = 0, isFree: string = ``) => {
+    const {data} = await $host.get(`api/beats/length?beatName=${searchValue}&priceFrom=${priceFrom}&priceTo=${priceTo}&isFree=${isFree}`)
     return {data}
 }
 
 export const likeBeatAction = async (beatId: string) => {
-    const {data} = await $authHost.post(`http://localhost:5000/api/beats/like/${beatId}` )
+    const {data} = await $authHost.post(`api/beats/like/${beatId}` )
     return data
 }
 
 export const unlikeBeatAction = async (beatId: string) => {
-    const {data} = await $authHost.post(`http://localhost:5000/api/beats/dislike/${beatId}` )
+    const {data} = await $authHost.post(`api/beats/dislike/${beatId}` )
     return data
 }
 
 export const checkIfBeatLiked = async (beatId: string) => {
-    const {data} = await $authHost.get(`http://localhost:5000/api/beats/findLiked/${beatId}` )
+    const {data} = await $authHost.get(`api/beats/findLiked/${beatId}` )
     return data
 }
 
 export const repostBeatAction = async (beatId: string) => {
-    const {data} = await $authHost.post(`http://localhost:5000/api/beats/repost/${beatId}` )
+    const {data} = await $authHost.post(`api/beats/repost/${beatId}` )
     return data
 }
 
 export const unrepostBeatAction = async (beatId: string) => {
-    const {data} = await $authHost.post(`http://localhost:5000/api/beats/unrepost/${beatId}` )
+    const {data} = await $authHost.post(`api/beats/unrepost/${beatId}` )
     return data
 }
 
 export const checkIfBeatReposted = async (beatId: string) => {
-    const {data} = await $authHost.get(`http://localhost:5000/api/beats/findReposted/${beatId}` )
+    const {data} = await $authHost.get(`api/beats/findReposted/${beatId}` )
     return data
 }

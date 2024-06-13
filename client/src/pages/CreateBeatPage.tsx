@@ -195,9 +195,9 @@ const CreateBeatPage = observer(() => {
             formData.append('isFree', isFree ? isFree.toString() : '')
             formData.append('licenses', JSON.stringify(licensePrices))
 
-            toggleLoadingOverlay()
+            // toggleLoadingOverlay()
             const data = await createBeat(formData, config);
-            toggleLoadingOverlay()
+            // toggleLoadingOverlay()
 
             if (data) {
                 navigate(ALL_BEATS_ROUTE);

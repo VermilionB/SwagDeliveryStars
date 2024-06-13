@@ -4,7 +4,7 @@ import {IconPlayerPause, IconPlayerPlay} from "@tabler/icons-react";
 import {Button, Flex, Group, Loader, Skeleton, UnstyledButton} from "@mantine/core";
 import {playBeat} from "../../http/beatsAPI";
 
-const Waveform = ({audio, beat}) => {
+const Waveform = ({audio, beat, user}) => {
     const waveform = useRef(null);
 
     const [isPlaying, setIsPlaying] = useState(true)
@@ -78,7 +78,9 @@ const Waveform = ({audio, beat}) => {
 
 
     const playAudio = () => {
-        playBeat(beat)
+        if(user) {
+            playBeat(beat)
+        }
         // Check if the audio is already playing
         if (waveform.current.isPlaying()) {
             setIsPlaying(true)

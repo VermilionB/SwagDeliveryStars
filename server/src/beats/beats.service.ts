@@ -69,6 +69,7 @@ export class BeatsService {
                 }
             });
 
+
             const licenses = JSON.parse(dto.licenses);
             const licenseTypes = Object.keys(licenses);
             const licensePrices = Object.values(licenses);
