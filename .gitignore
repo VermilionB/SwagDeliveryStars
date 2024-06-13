@@ -53,4 +53,4 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 .env
-/docs
+docs/
